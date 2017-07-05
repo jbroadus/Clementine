@@ -1179,6 +1179,20 @@ optional_source(HAVE_SEAFILE
     internet/seafile/seafilesettingspage.ui
 )
 
+# UPnP support
+optional_source(HAVE_LIBUPNP
+  SOURCES
+    upnp/upnpmanager.cpp
+    upnp/upnpview.cpp
+    upnp/upnpviewcontainer.cpp
+  HEADERS
+    upnp/upnpmanager.h
+    upnp/upnpview.h
+    upnp/upnpviewcontainer.h
+  UI
+    upnp/upnpviewcontainer.ui
+)
+
 # Pulse audio integration
 optional_source(HAVE_LIBPULSE
   INCLUDE_DIRECTORIES
@@ -1303,6 +1317,10 @@ endif(HAVE_SPOTIFY_DOWNLOADER)
 
 if(HAVE_LIBPULSE)
   target_link_libraries(clementine_lib ${LIBPULSE_LIBRARIES})
+endif()
+
+if(HAVE_LIBUPNP)
+  target_link_libraries(clementine_lib ${LIBUPNP_LIBRARIES})
 endif()
 
 if (APPLE)

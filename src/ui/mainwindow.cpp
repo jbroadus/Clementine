@@ -118,6 +118,10 @@
 #include "ui/systemtrayicon.h"
 #include "ui/trackselectiondialog.h"
 #include "ui/windows7thumbbar.h"
+#ifdef HAVE_LIBUPNP
+#include "upnp/upnpviewcontainer.h"
+#include "upnp/upnpview.h"
+#endif
 #include "version.h"
 #include "widgets/errordialog.h"
 #include "widgets/fileview.h"
@@ -180,6 +184,9 @@ MainWindow::MainWindow(Application* app, SystemTrayIcon* tray_icon, OSD* osd,
       internet_view_(new InternetViewContainer(this)),
       device_view_container_(new DeviceViewContainer(this)),
       device_view_(device_view_container_->view()),
+#ifdef HAVE_LIBUPNP
+      upnp_view_(new UpnpViewContainer(this)),
+#endif
       song_info_view_(new SongInfoView(this)),
       artist_info_view_(new ArtistInfoView(this)),
       settings_dialog_(std::bind(&MainWindow::CreateSettingsDialog, this)),
@@ -273,6 +280,12 @@ MainWindow::MainWindow(Application* app, SystemTrayIcon* tray_icon, OSD* osd,
       device_view_container_,
       IconLoader::Load("multimedia-player-ipod-mini-blue", IconLoader::Base),
       tr("Devices"));
+#ifdef HAVE_LIBUPNP
+  ui_->tabs->AddTab(
+                    upnp_view_,
+                    IconLoader::Load("multimedia-player-ipod-mini-blue", IconLoader::Base),
+                    tr("UPnP"));
+#endif
   ui_->tabs->AddSpacer();
   ui_->tabs->AddTab(song_info_view_,
                     IconLoader::Load("view-media-lyrics", IconLoader::Base),
@@ -317,6 +330,9 @@ MainWindow::MainWindow(Application* app, SystemTrayIcon* tray_icon, OSD* osd,
   internet_view_->SetApplication(app_);
   device_view_->SetApplication(app_);
   playlist_list_->SetApplication(app_);
+#ifdef HAVE_LIBUPNP
+  upnp_view_->view()->SetApplication(app_);
+#endif
 
   // Icons
   qLog(Debug) << "Creating UI";

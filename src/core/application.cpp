@@ -51,6 +51,7 @@
 #include "networkremote/networkremotehelper.h"
 #include "playlist/playlistbackend.h"
 #include "playlist/playlistmanager.h"
+#include "upnp/upnpmanager.h"
 
 #ifdef HAVE_LIBLASTFM
 #include "covers/lastfmcoverprovider.h"
@@ -147,6 +148,13 @@ class ApplicationImpl {
 #else
           return nullptr;
 #endif
+        }),
+        upnp_manager_([=]() {
+#ifdef HAVE_LIBUPNP
+          return new UpnpManager(app, app);
+#else
+          return nullptr;
+#endif
         }) {
   }
 
@@ -174,6 +182,7 @@ class ApplicationImpl {
   Lazy<NetworkRemote> network_remote_;
   Lazy<NetworkRemoteHelper> network_remote_helper_;
   Lazy<Scrobbler> scrobbler_;
+  Lazy<UpnpManager> upnp_manager_;
 };
 
 Application::Application(QObject* parent)
@@ -325,4 +334,8 @@ TagReaderClient* Application::tag_reader_client() const {
 
 TaskManager* Application::task_manager() const {
   return p_->task_manager_.get();
+}
+
+UpnpManager* Application::upnp_manager() const {
+  return p_->upnp_manager_.get();
 }
