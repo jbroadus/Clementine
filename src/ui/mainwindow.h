@@ -80,6 +80,7 @@ class TagFetcher;
 class TaskManager;
 class TrackSelectionDialog;
 class TranscodeDialog;
+class UpnpViewContainer;
 class VisualisationContainer;
 class WiimotedevShortcuts;
 class Windows7ThumbBar;
@@ -325,6 +326,9 @@ signals:
   InternetViewContainer* internet_view_;
   DeviceViewContainer* device_view_container_;
   DeviceView* device_view_;
+#ifdef HAVE_LIBUPNP
+  UpnpViewContainer* upnp_view_;
+#endif
   SongInfoView* song_info_view_;
   ArtistInfoView* artist_info_view_;
 

@@ -57,6 +57,7 @@ class PodcastUpdater;
 class Scrobbler;
 class TagReaderClient;
 class TaskManager;
+class UpnpManager;
 
 class Application : public QObject {
   Q_OBJECT
@@ -104,6 +105,7 @@ class Application : public QObject {
   Scrobbler* scrobbler() const;
   TagReaderClient* tag_reader_client() const;
   TaskManager* task_manager() const;
+  UpnpManager* upnp_manager() const;
 
   void DirtySettings();
 
