@@ -41,6 +41,10 @@
 #include "songinfo/collapsibleinfopane.h"
 #include "ui/equalizer.h"
 
+#ifdef HAVE_LIBUPNP
+#include "upnp/upnpmanager.h"
+#endif
+
 #ifdef HAVE_DBUS
 #include <QDBusMetaType>
 #include "core/mpris2.h"
@@ -109,6 +113,9 @@ void RegisterMetaTypes() {
   qRegisterMetaType<SubdirectoryList>("SubdirectoryList");
   qRegisterMetaType<Subdirectory>("Subdirectory");
   qRegisterMetaType<QList<QUrl>>("QList<QUrl>");
+#ifdef HAVE_LIBUPNP
+  qRegisterMetaType<UpnpDeviceInfo>("UpnpDeviceInfo");
+#endif
 
 #ifdef HAVE_DBUS
   qDBusRegisterMetaType<QImage>();
