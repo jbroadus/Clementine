@@ -18,42 +18,95 @@
 #ifndef UPNPMANAGER_H
 #define UPNPMANAGER_H
 
-#include <QAbstractListModel>
+#include "core/simpletreemodel.h"
+#include "core/simpletreeitem.h"
 
-#include "library/librarymodel.h"
-
+class Application;
 class UpnpManagerPriv;
 
-class UpnpManager : public QAbstractListModel {
+struct UpnpServiceInfo {
+  QString type;
+};
+
+struct UpnpDeviceInfo {
+  QString udn;
+  QString name;
+  QString type;
+  QList<UpnpServiceInfo> services;
+};
+
+class UpnpItem : public SimpleTreeItem<UpnpItem>
+{
+ public:
+  enum Type {
+    Upnp_Root,
+    Upnp_Device,
+    Upnp_Service,
+    Upnp_Directory,
+  };
+
+ UpnpItem(SimpleTreeModel<UpnpItem>* model) :
+  SimpleTreeItem<UpnpItem>(Upnp_Root, model) {}
+
+ UpnpItem(Type type, UpnpItem *parent) :
+  SimpleTreeItem<UpnpItem>(type, parent) {}
+};
+
+class UpnpDevice : public UpnpItem
+{
+ public:
+ UpnpDevice(const UpnpDeviceInfo &info, UpnpItem *parent) :
+  UpnpItem(Upnp_Device, parent),
+    info_(info),
+    has_media_server(false)
+    {
+      display_text = info.name;
+      servicesItem_ = new UpnpItem(Upnp_Directory, this);
+      servicesItem_->display_text = "services";
+    }
+  UpnpDeviceInfo info_;
+  bool has_media_server;
+
+  UpnpItem *servicesItem_;
+};
+
+class UpnpService : public UpnpItem
+{
+ public:
+ UpnpService(UpnpServiceInfo &info, UpnpItem *parent) :
+  UpnpItem(Upnp_Service, parent),
+    info_(info) { display_text = info.type; }
+  UpnpServiceInfo &info_;
+};
+
+class UpnpManager : public SimpleTreeModel<UpnpItem>
+{
   Q_OBJECT
 
  public:
   UpnpManager(Application* app, QObject* parent = nullptr);
   ~UpnpManager();
 
-
-  // QAbstractListModel
-  int rowCount(const QModelIndex& parent) const;
   QVariant data(const QModelIndex& index, int role) const;
 
  signals:
   void DeviceDiscovered(int row);
 
- private:
-  friend class UpnpManagerPriv;
-  struct UpnpDevice {
-    QString udn;
-    QString name;
-    QString type;
-  };
-  void AddDevice(UpnpDevice &dev);
-  int FindDeviceByUdn(const QString& udn) const;
+ protected:
+  void LazyPopulate(UpnpItem *item);
 
  private:
+  friend class UpnpManagerPriv;
+  int FindDeviceByUdn(const QString& udn) const;
+
+ public slots:
+  void AddDevice(const UpnpDeviceInfo &info);
+
+ private:
+  void AddService(UpnpServiceInfo &info, UpnpDevice *dev);
   
   Application* app_;
   UpnpManagerPriv *priv_;
-  QList<UpnpDevice> devices_;
 };
 
 #endif  // UPNPMANAGER_H

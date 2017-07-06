@@ -1202,10 +1202,12 @@ optional_source(HAVE_SEAFILE
 optional_source(HAVE_LIBUPNP
   SOURCES
     upnp/upnpmanager.cpp
+    upnp/upnppriv.cpp
     upnp/upnpview.cpp
     upnp/upnpviewcontainer.cpp
   HEADERS
     upnp/upnpmanager.h
+    upnp/upnppriv.h
     upnp/upnpview.h
     upnp/upnpviewcontainer.h
   UI
