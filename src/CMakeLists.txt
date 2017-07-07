@@ -1182,11 +1182,13 @@ optional_source(HAVE_SEAFILE
 # UPnP support
 optional_source(HAVE_LIBUPNP
   SOURCES
+    upnp/upnpdesc.cpp
     upnp/upnpmanager.cpp
     upnp/upnppriv.cpp
     upnp/upnpview.cpp
     upnp/upnpviewcontainer.cpp
   HEADERS
+    #upnp/upnpdesc.h
     upnp/upnpmanager.h
     upnp/upnppriv.h
     upnp/upnpview.h

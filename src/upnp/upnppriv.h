@@ -47,10 +47,12 @@ private:
   UpnpManager *mgr_;
   QString webdir_;
 
+  UpnpDeviceInfo renderer_info_;
+  
   int DiscoveryCallback(Upnp_EventType EventType,
                         struct Upnp_Discovery *discovery);
 
-  bool CreateMediaRendererDesc();
+  bool BuildRendererInfo(UpnpDeviceInfo &info);
   bool CreateClient();
   bool CreateRenderer();
   

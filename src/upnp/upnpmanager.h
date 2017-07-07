@@ -26,6 +26,10 @@ class UpnpManagerPriv;
 
 struct UpnpServiceInfo {
   QString type;
+  QString id;
+  QString scpdUrl;
+  QString controlUrl;
+  QString eventSubUrl;
 };
 
 struct UpnpDeviceInfo {
@@ -75,7 +79,11 @@ class UpnpService : public UpnpItem
  public:
  UpnpService(UpnpServiceInfo &info, UpnpItem *parent) :
   UpnpItem(Upnp_Service, parent),
-    info_(info) { display_text = info.type; }
+    info_(info)
+    {
+      display_text = info.type;
+      lazy_loaded = true;
+    }
   UpnpServiceInfo &info_;
 };
 
@@ -87,7 +95,9 @@ class UpnpManager : public SimpleTreeModel<UpnpItem>
   UpnpManager(Application* app, QObject* parent = nullptr);
   ~UpnpManager();
 
+  // QAbstractItemModel
   QVariant data(const QModelIndex& index, int role) const;
+  Qt::ItemFlags flags(const QModelIndex& index) const;
 
  signals:
   void DeviceDiscovered(int row);

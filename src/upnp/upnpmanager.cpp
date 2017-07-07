@@ -109,3 +109,12 @@ QVariant UpnpManager::data(const QModelIndex& index, int role) const {
   }
 }
 
+Qt::ItemFlags UpnpManager::flags(const QModelIndex& index) const {
+  const UpnpItem *item = IndexToItem(index);
+  switch (item->type) {
+  case UpnpItem::Upnp_Service:
+    return Qt::ItemIsSelectable | Qt::ItemIsEnabled;
+  default:
+    return Qt::ItemIsEnabled;
+  }
+}

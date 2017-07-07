@@ -18,12 +18,14 @@ AR PURPOSE.  See the
 
 #include "upnpview.h"
 
+#include <QMouseEvent>
 #include <QPainter>
 #include <QSortFilterProxyModel>
 
 #include "upnpmanager.h"
 
 #include <core/application.h>
+#include "core/logging.h"
 
 UpnpView::UpnpView(QWidget* parent)
   : AutoExpandingTreeView(parent),
@@ -55,9 +57,16 @@ void UpnpView::SetApplication(Application* app) {
           SLOT(RecursivelyExpand(QModelIndex)));
 
   setModel(sort_model_);
-
+  connect(this, SIGNAL(doubleClicked(QModelIndex)),
+          SLOT(ItemDoubleClicked(QModelIndex)));
 }
 
 void UpnpView::DeviceDiscovered(int row)
 {
+  qLog(Debug) << "DeviceDiscovered";
+}
+
+void UpnpView::ItemDoubleClicked(const QModelIndex& index)
+{
+  qLog(Debug) << "ItemDoubleClicked " << index;
 }

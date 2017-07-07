@@ -21,6 +21,7 @@
 #include <QDir>
 #include <upnp/upnpdebug.h>
 
+#include "upnpdesc.h"
 #include "upnpmanager.h"
 #include "core/logging.h"
 #include "core/utilities.h"
@@ -28,7 +29,6 @@
 #define MEDIA_RENDERER_DIR "MediaRenderer"
 #define MEDIA_RENDERER_URN "urn:schemas-upnp-org:device:MediaRenderer:1"
 #define MEDIA_RENDERER_NAME "Clementine"
-#define DESC_FILE "desc.xml"
 
 
 UpnpManagerPriv::UpnpManagerPriv() :
@@ -64,36 +64,28 @@ UpnpManagerPriv::UpnpManagerPriv() :
   }
 }
 
-bool UpnpManagerPriv::CreateMediaRendererDesc()
+bool UpnpManagerPriv::BuildRendererInfo(UpnpDeviceInfo &info)
 {
-  QString mpdir = QDir::toNativeSeparators(webdir_ + "/" MEDIA_RENDERER_DIR);
-  QString mpdesc = QDir::toNativeSeparators(mpdir + "/" DESC_FILE);
-  if (!QFile::exists(mpdir)) {
-    QDir dir;
-    if (!dir.mkpath(mpdir)) {
-      qLog(Error) << "Could not create " << mpdir;
-      return false;
-    }
-  }
-  QFile desc(mpdesc);
-  if (!desc.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
-      qLog(Error) << "Could not create " << mpdesc;
-      return false;
-  }
-  
-  QTextStream out(&desc);
-  out << "<?xml version=\"1.0\"?>\n";
-  out << "<root>\n";
-  out << "<specVersion>\n";
-  out << "<major>1</major>\n";
-  out << "<minor>0</minor>\n";
-  out << "</specVersion>\n";
-  out << "<device>\n";
-  out << "<deviceType>" << MEDIA_RENDERER_URN << "</deviceType>\n";
-  out << "<friendlyName>" << MEDIA_RENDERER_NAME << "</friendlyName>\n";
-  out << "<UDN>" << "uuid:clementine" << "</UDN>\n";
-  out << "</device>\n";
-  out << "</root>\n";
+  UpnpServiceInfo service;
+
+  renderer_info_.type = MEDIA_RENDERER_URN;
+  renderer_info_.name = MEDIA_RENDERER_NAME;
+  renderer_info_.udn = "uuid:clementine";
+
+  service.type = "urn:schemas-upnp-org:service:RenderingControl:1";
+  service.id = "urn:upnp-org:serviceId:RenderingControl";
+  service.scpdUrl = "/MediaRenderer/RenderingControl.xml";
+  renderer_info_.services << service;
+
+  service.type = "urn:schemas-upnp-org:service:ConnectionManager:1";
+  service.id = "urn:upnp-org:serviceId:ConnectionManager";
+  service.scpdUrl = "/MediaRenderer/ConnectionManager.xml";
+  renderer_info_.services << service;
+
+  service.type = "urn:schemas-upnp-org:service:AVTransport:1";
+  service.id = "urn:upnp-org:serviceId:AVTransport";
+  service.scpdUrl = "/MediaRenderer/AVTransport.xml";
+  renderer_info_.services << service;
 
   return true;
 }
@@ -131,19 +123,23 @@ bool UpnpManagerPriv::CreateRenderer()
   char *addr = NULL;
   unsigned short port = 0;
 
-  if (!CreateMediaRendererDesc()) {
-    return false;
+  BuildRendererInfo(renderer_info_);
+  QString dir(MEDIA_RENDERER_DIR);
+  UpnpDesc desc(webdir_, dir, renderer_info_);
+
+  for (int i=0; i<renderer_info_.services.count(); i++) {
+    UpnpDesc desc(webdir_, renderer_info_.services[i]);
   }
 
   addr = UpnpGetServerIpAddress();
   port = UpnpGetServerPort();
 
-  char url[256];
-  snprintf(url, sizeof(url), "http://%s:%d/%s/%s",
-           addr, port, MEDIA_RENDERER_DIR, DESC_FILE);
+  QString url = QString("http://%1:%2/").arg(addr, QString::number(port)) +
+    desc.GetUrlPath();
   qLog(Debug) << "My URL: "<< url;
-  
-  rc = UpnpRegisterRootDevice(url, DeviceEventCallback, this, &rendererHandle);
+
+  rc = UpnpRegisterRootDevice((const char *)url.toAscii().data(),
+                              DeviceEventCallback, this, &rendererHandle);
   if (rc != UPNP_E_SUCCESS) {
     qLog(Error) << "Failed to register root device: " << rc;
     return false;
@@ -207,6 +203,7 @@ void UpnpManagerPriv::GetServices(IXML_Document *doc, UpnpDeviceInfo *devInfo)
         UpnpServiceInfo svcInfo;
         IXML_Element *s = (IXML_Element *)ixmlNodeList_item(sl, i);
         GetNodeStr(svcInfo.type, s, "serviceType");
+        GetNodeStr(svcInfo.id, s, "serviceId");
         devInfo->services << svcInfo;
       }
       ixmlNodeList_free(sl);
