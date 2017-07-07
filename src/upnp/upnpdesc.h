@@ -15,28 +15,38 @@
    along with Clementine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "widgets/autoexpandingtreeview.h"
+#ifndef UPNPDESC_H
+#define UPNPDESC_H
 
-class Application;
-class QSortFilterProxyModel;
+#include <QFile>
+#include <QString>
 
-class UpnpView : public AutoExpandingTreeView {
-  Q_OBJECT
+struct UpnpDeviceInfo;
+struct UpnpServiceInfo;
 
+class QXmlStreamWriter;
+
+class UpnpDesc
+{
  public:
-  UpnpView(QWidget* parent = nullptr);
-  ~UpnpView();
+  UpnpDesc(QString &webdir, QString &dir, UpnpDeviceInfo &info);
+  UpnpDesc(QString &webdir, UpnpServiceInfo &info);
 
-  void SetApplication(Application* app);
-
- protected:
-
-
- private slots:
-  void DeviceDiscovered(int row);
-  void ItemDoubleClicked(const QModelIndex& index);
-
+  QString GetUrlPath();
  private:
-  Application* app_;
-  QSortFilterProxyModel* sort_model_;
+  /* XML generation */
+  bool Open();
+  bool AddSpecVersion(QXmlStreamWriter &out);
+
+  bool GenerateDesc(QXmlStreamWriter &out, UpnpDeviceInfo &info);
+  bool CreateDesc(UpnpDeviceInfo &info);
+
+  bool GenerateSCPD(QXmlStreamWriter &out);
+  bool CreateSCPD(UpnpServiceInfo &info);
+
+  QString webdir_;
+  QString path_;
+  QFile file_;
 };
+
+#endif  // UPNPDESC_H
