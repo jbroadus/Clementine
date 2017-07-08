@@ -24,19 +24,51 @@
 class Application;
 class UpnpManagerPriv;
 
+struct UpnpActionArgInfo {
+  QString name;
+  QString relStateVar;
+  typedef enum {DIR_IN, DIR_OUT} direction_t;
+  direction_t direction;
+};
+
+typedef QList<UpnpActionArgInfo> UpnpActionArgList;
+struct UpnpActionInfo {
+  QString name;
+  UpnpActionArgList args;
+};
+
+typedef QList<UpnpActionInfo> UpnpActionList;
 struct UpnpServiceInfo {
   QString type;
   QString id;
   QString scpdUrl;
   QString controlUrl;
   QString eventSubUrl;
+  UpnpActionList actions;
+  UpnpActionInfo *FindActionByName(QString &name) {
+    UpnpActionList::iterator i;
+    for (i = actions.begin(); i != actions.end(); i++) {
+      if (i->name == name)
+        return &(*i); 
+    }
+    return NULL;
+  }
 };
 
+typedef QList<UpnpServiceInfo> UpnpServiceList;
 struct UpnpDeviceInfo {
   QString udn;
   QString name;
   QString type;
-  QList<UpnpServiceInfo> services;
+  UpnpServiceList services;
+  UpnpServiceInfo *FindServiceById(QString &id) {
+    UpnpServiceList::iterator i;
+    for (i = services.begin(); i != services.end(); i++) {
+      if (i->id == id)
+        return &(*i); 
+    }
+    return NULL;
+  }
 };
 
 class UpnpItem : public SimpleTreeItem<UpnpItem>
