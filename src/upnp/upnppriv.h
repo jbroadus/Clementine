@@ -39,8 +39,9 @@ signals:
 
 protected:
   static int ClientEventCallback(Upnp_EventType EventType, const void *Event, void *Cookie);
-  static int DeviceEventCallback(Upnp_EventType EventType, const void *Event, void *Cookie);
+  static int RendererEventCallback(Upnp_EventType EventType, const void *Event, void *Cookie);
 
+  bool StartAsyncSearch();
 private:
   UpnpClient_Handle clientHandle;
   UpnpDevice_Handle rendererHandle;
@@ -49,13 +50,22 @@ private:
 
   UpnpDeviceInfo renderer_info_;
   
+  /* Event Callbacks */
   int DiscoveryCallback(Upnp_EventType EventType,
                         UpnpDiscovery *discovery);
 
+  int ActionReqCallback(UpnpActionRequest *request);
+
+
+  /* Local device helpers */
+  UpnpServiceInfo *AddService(UpnpDeviceInfo &info, const char *name);
+  UpnpActionInfo *AddAction(UpnpServiceInfo *info, const char *name);
+  UpnpActionArgInfo *AddActionArg(UpnpActionInfo *info, const char *name, const char *related, UpnpActionArgInfo::direction_t dir);
   bool BuildRendererInfo(UpnpDeviceInfo &info);
   bool CreateClient();
   bool CreateRenderer();
-  
+
+  /* XML parsing helpers */
   void ParseDoc(IXML_Document *doc);
   void GetServices(IXML_Document *doc, UpnpDeviceInfo *devInfo);
   int GetNodeStr(QString &str, IXML_Document *doc, const char *name);

@@ -93,13 +93,14 @@ bool UpnpDesc::GenerateDesc(QXmlStreamWriter &out, UpnpDeviceInfo &info)
   out.writeTextElement("UDN", info.udn);
 
   out.writeStartElement("serviceList");
-  for (int i=0; i<info.services.count(); i++) {
+  UpnpServiceList::iterator i;
+  for (i = info.services.begin(); i != info.services.end(); i++) {
     out.writeStartElement("service");
-    out.writeTextElement("serviceType", info.services[i].type);
-    out.writeTextElement("serviceId", info.services[i].id);
-    out.writeTextElement("SCPDURL", info.services[i].scpdUrl);
-    out.writeTextElement("controlURL", info.services[i].controlUrl);
-    out.writeTextElement("eventSubURL", info.services[i].eventSubUrl);
+    out.writeTextElement("serviceType", i->type);
+    out.writeTextElement("serviceId", i->id);
+    out.writeTextElement("SCPDURL", i->scpdUrl);
+    out.writeTextElement("controlURL", i->controlUrl);
+    out.writeTextElement("eventSubURL", i->eventSubUrl);
     out.writeEndElement(); // service
   }
   out.writeEndElement(); // serviceList
@@ -124,13 +125,33 @@ bool UpnpDesc::CreateDesc(UpnpDeviceInfo &info)
   return true;
 }
 
-bool UpnpDesc::GenerateSCPD(QXmlStreamWriter &out)
+bool UpnpDesc::GenerateSCPD(QXmlStreamWriter &out, UpnpServiceInfo &info)
 {
   out.setAutoFormatting(true);
   out.writeStartDocument();
   out.writeStartElement("scpd");
 
   AddSpecVersion(out);
+
+  out.writeStartElement("actionList");
+  UpnpActionList::iterator i;
+  UpnpActionArgList::iterator j;
+  for (i = info.actions.begin(); i != info.actions.end(); i++) {
+    out.writeStartElement("action");
+    out.writeTextElement("name", i->name);    
+    out.writeStartElement("argumentList");
+    for (j = i->args.begin(); j != i->args.end(); j++) {
+      out.writeStartElement("argument");
+      out.writeTextElement("name", j->name);
+      out.writeTextElement("direction",
+                           j->direction == UpnpActionArgInfo::DIR_OUT?"out":"in");
+      out.writeTextElement("relatedStateVariable", j->relStateVar);
+      out.writeEndElement(); // argument
+    }
+    out.writeEndElement(); // ArgumentList
+    out.writeEndElement(); // action
+  }
+  out.writeEndElement(); // actionList
 
   out.writeEndElement(); // scpd
   out.writeEndDocument();
@@ -144,7 +165,7 @@ bool UpnpDesc::CreateSCPD(UpnpServiceInfo &info)
     return false;
 
   QXmlStreamWriter out(&file_);
-  GenerateSCPD(out);
+  GenerateSCPD(out, info);
   file_.flush();
 
   return true;

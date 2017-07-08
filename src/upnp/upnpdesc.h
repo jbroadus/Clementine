@@ -41,7 +41,7 @@ class UpnpDesc
   bool GenerateDesc(QXmlStreamWriter &out, UpnpDeviceInfo &info);
   bool CreateDesc(UpnpDeviceInfo &info);
 
-  bool GenerateSCPD(QXmlStreamWriter &out);
+  bool GenerateSCPD(QXmlStreamWriter &out, UpnpServiceInfo &info);
   bool CreateSCPD(UpnpServiceInfo &info);
 
   QString webdir_;

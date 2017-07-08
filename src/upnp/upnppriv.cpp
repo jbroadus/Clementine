@@ -19,7 +19,10 @@
 
 #include <QFile>
 #include <QDir>
-//#include <upnp/upnpdebug.h>
+
+#ifdef ENABLE_UPNP_DEBUG
+#include <upnp/upnpdebug.h>
+#endif
 
 #include "upnpdesc.h"
 #include "upnpmanager.h"
@@ -39,7 +42,9 @@ UpnpManagerPriv::UpnpManagerPriv() :
 {
   int rc;
 
-  //UpnpSetLogLevel(UPNP_ALL);
+#ifdef ENABLE_UPNP_DEBUG
+  UpnpSetLogLevel(UPNP_ALL);
+#endif  
   rc = UpnpInit(NULL, 0);
   if (rc != UPNP_E_SUCCESS) {
     qLog(Error) << "UpnpInit failed with " << rc;
@@ -64,28 +69,74 @@ UpnpManagerPriv::UpnpManagerPriv() :
   }
 }
 
-bool UpnpManagerPriv::BuildRendererInfo(UpnpDeviceInfo &info)
+UpnpActionArgInfo *UpnpManagerPriv::AddActionArg(UpnpActionInfo *info, const char *name, const char *related, UpnpActionArgInfo::direction_t dir)
+{
+  UpnpActionArgInfo arg;
+  arg.name = name;
+  arg.relStateVar = related;
+  arg.direction = dir;
+  info->args << arg;
+  return &info->args.last();
+}
+
+UpnpActionInfo *UpnpManagerPriv::AddAction(UpnpServiceInfo *info, const char *name)
+{
+  UpnpActionInfo action;
+  action.name = name;
+  info->actions << action;
+  return &info->actions.last();
+}
+
+UpnpServiceInfo *UpnpManagerPriv::AddService(UpnpDeviceInfo &info, const char *name)
 {
   UpnpServiceInfo service;
+  service.type = QString("urn:schemas-upnp-org:service:%1:1").arg(name);
+  service.id = QString("urn:upnp-org:serviceId:%1").arg(name);
+  service.scpdUrl = QString("/MediaRenderer/%1.xml").arg(name);
+  service.eventSubUrl = QString("/MediaRenderer/%1/eventsub").arg(name);
+  service.controlUrl = QString("/MediaRenderer/%1/control").arg(name);
+  info.services << service;
+  return &info.services.last();
+}
 
+bool UpnpManagerPriv::BuildRendererInfo(UpnpDeviceInfo &info)
+{
   renderer_info_.type = MEDIA_RENDERER_URN;
   renderer_info_.name = MEDIA_RENDERER_NAME;
   renderer_info_.udn = "uuid:clementine";
 
-  service.type = "urn:schemas-upnp-org:service:RenderingControl:1";
-  service.id = "urn:upnp-org:serviceId:RenderingControl";
-  service.scpdUrl = "/MediaRenderer/RenderingControl.xml";
-  renderer_info_.services << service;
+  UpnpServiceInfo *service;
+  UpnpActionInfo *action;
 
-  service.type = "urn:schemas-upnp-org:service:ConnectionManager:1";
-  service.id = "urn:upnp-org:serviceId:ConnectionManager";
-  service.scpdUrl = "/MediaRenderer/ConnectionManager.xml";
-  renderer_info_.services << service;
+  service = AddService(renderer_info_, "RenderingControl");
 
-  service.type = "urn:schemas-upnp-org:service:AVTransport:1";
-  service.id = "urn:upnp-org:serviceId:AVTransport";
-  service.scpdUrl = "/MediaRenderer/AVTransport.xml";
-  renderer_info_.services << service;
+  service = AddService(renderer_info_, "ConnectionManager");
+
+  service = AddService(renderer_info_, "AVTransport");
+  action = AddAction(service, "SetAVTransportURI");
+  AddActionArg(action, "InstanceID", "A_ARG_TYPE_InstanceID", UpnpActionArgInfo::DIR_IN);
+  AddActionArg(action, "CurrentURI", "AVTransportURI", UpnpActionArgInfo::DIR_IN);
+  AddActionArg(action, "CurrentURIMetaData", "AVTransportURIMetaData", UpnpActionArgInfo::DIR_IN);
+  action = AddAction(service, "SetNextAVTransportURI"); /* Optional */
+  AddActionArg(action, "InstanceID", "A_ARG_TYPE_InstanceID", UpnpActionArgInfo::DIR_IN);
+  AddActionArg(action, "NexURI", "NextAVTransportURI", UpnpActionArgInfo::DIR_IN);
+  AddActionArg(action, "NextURIMetaData", "NextAVTransportURIMetaData", UpnpActionArgInfo::DIR_IN);
+  action = AddAction(service, "GetMediaInfo");
+  action = AddAction(service, "GetTransportInfo");
+  action = AddAction(service, "GetPositionInfo");
+  action = AddAction(service, "GetDeviceCapabilities");
+  action = AddAction(service, "GetTransportSettings");
+  action = AddAction(service, "Stop");
+  AddActionArg(action, "InstanceID", "A_ARG_TYPE_InstanceID", UpnpActionArgInfo::DIR_IN);
+  action = AddAction(service, "Play");
+  action = AddAction(service, "Pause"); /* Optional */
+  /* Record optional */
+  action = AddAction(service, "Seek");
+  action = AddAction(service, "Next");
+  action = AddAction(service, "Previous");
+  /* SetPlayMode optional */
+  /* SetRecordQualityMode optional */
+  /* GetCurrentTransportActions optional */
 
   return true;
 }
@@ -98,6 +149,21 @@ void UpnpManagerPriv::SetMgr(UpnpManager *mgr)
   CreateRenderer();
 }
 
+#define SEARCH_PATTERN "ssdp:all"
+//#define SEARCH_PATTERN "urn:schemas-upnp-org:device:MediaServer:1"
+bool UpnpManagerPriv::StartAsyncSearch()
+{
+  int rc;
+  qLog(Debug) << "Starting async search";
+  rc = UpnpSearchAsync(clientHandle, 30, SEARCH_PATTERN, this);
+  if (rc != UPNP_E_SUCCESS) {
+    qLog(Error) << "Failed to start asnc search: " << rc;
+    return false;
+  }
+
+  return true;
+}
+
 bool UpnpManagerPriv::CreateClient()
 {
   int rc;
@@ -107,12 +173,7 @@ bool UpnpManagerPriv::CreateClient()
     return false;
   }
 
-  qLog(Debug) << "Starting async search";
-  rc = UpnpSearchAsync(clientHandle, 30, "ssdp:all", this);
-  if (rc != UPNP_E_SUCCESS) {
-    qLog(Error) << "Failed to start asnc search: " << rc;
-  }
-  //UpnpSearchAsync(myHandle, 30, "urn:schemas-upnp-org:device:MediaServer:1", this);
+  StartAsyncSearch();
 
   return true;
 }
@@ -139,7 +200,7 @@ bool UpnpManagerPriv::CreateRenderer()
   qLog(Debug) << "My URL: "<< url;
 
   rc = UpnpRegisterRootDevice((const char *)url.toAscii().data(),
-                              DeviceEventCallback, this, &rendererHandle);
+                              RendererEventCallback, this, &rendererHandle);
   if (rc != UPNP_E_SUCCESS) {
     qLog(Error) << "Failed to register root device: " << rc;
     return false;
@@ -241,11 +302,43 @@ int UpnpManagerPriv::DiscoveryCallback(Upnp_EventType EventType,
     qLog(Error) << "UPnP discovery error: " << err;
     return 0;
   }
+
   const char *loc = UpnpString_get_String(UpnpDiscovery_get_Location(discovery));
-  qLog(Debug) << loc;
+  //qLog(Debug) << loc;
   UpnpDownloadXmlDoc(loc, &DescDoc);
   ParseDoc(DescDoc);
 
+  return 0;
+}
+
+int UpnpManagerPriv::ActionReqCallback(UpnpActionRequest *request)
+{
+  QString sid(UpnpString_get_String(UpnpActionRequest_get_ServiceID(request)));
+  QString aname(UpnpString_get_String(UpnpActionRequest_get_ActionName(request)));
+
+  qLog(Debug) << "Action " << aname << " on " << sid;
+  UpnpServiceInfo *service = renderer_info_.FindServiceById(sid);
+  if (!service) {
+    qLog(Error) << "Could not find service " << sid;
+    return -1;
+  }
+  UpnpActionInfo *action = service->FindActionByName(aname);
+  if (!action) {
+    qLog(Error) << "Could not find action " << aname;
+    return -1;
+  }
+
+  IXML_Node *req = (IXML_Node *)UpnpActionRequest_get_ActionRequest(request);
+  char *xmlbuff = ixmlPrintNode(req);
+  if (xmlbuff) {
+    qLog(Debug) << xmlbuff;
+    ixmlFreeDOMString(xmlbuff);
+  }
+  xmlbuff = ixmlPrintNode(req);
+  if (xmlbuff) {
+    qLog(Debug) << xmlbuff;
+    ixmlFreeDOMString(xmlbuff);
+  }
   return 0;
 }
 
@@ -256,17 +349,23 @@ int UpnpManagerPriv::ClientEventCallback(Upnp_EventType EventType, const void *E
 
   switch (EventType) {
   case UPNP_DISCOVERY_SEARCH_RESULT:
-    qLog(Debug) << "UPNP_DISCOVERY_SEARCH_RESULT";
+    //qLog(Debug) << "UPNP_DISCOVERY_SEARCH_RESULT";
     return priv->DiscoveryCallback(EventType, (UpnpDiscovery *)Event);
 
   case UPNP_DISCOVERY_SEARCH_TIMEOUT:
-    qLog(Debug) << "UPNP_DISCOVERY_SEARCH_TIMEOUT";
+    qLog(Debug) << "Search timeout. Restarting";
+    priv->StartAsyncSearch();
     break;
 
   case UPNP_DISCOVERY_ADVERTISEMENT_ALIVE:
 #if 0
     qLog(Debug) << "UPNP_DISCOVERY_ADVERTISEMENT_ALIVE";
     return discoveryCallback(EventType, (UpnpDiscovery *)Event);
+#endif
+    break;
+  case UPNP_DISCOVERY_ADVERTISEMENT_BYEBYE:
+#if 0
+    qLog(Debug) << "UPNP_DISCOVERY_ADVERTISEMENT_BYEBYE";
 #endif
     break;
   default:
@@ -276,12 +375,15 @@ int UpnpManagerPriv::ClientEventCallback(Upnp_EventType EventType, const void *E
   return 0;
 }
 
-int UpnpManagerPriv::DeviceEventCallback(Upnp_EventType EventType, const void *Event, void *Cookie)
+int UpnpManagerPriv::RendererEventCallback(Upnp_EventType EventType, const void *Event, void *Cookie)
 {
-  //UpnpManagerPriv *priv = (UpnpManagerPriv *)Cookie;
-  //Q_ASSERT(priv);
+  UpnpManagerPriv *priv = (UpnpManagerPriv *)Cookie;
+  Q_ASSERT(priv);
 
   switch (EventType) {
+  case UPNP_CONTROL_ACTION_REQUEST:
+    return priv->ActionReqCallback((UpnpActionRequest *)Event);
+    break;
   default:
     qLog(Debug) << "DeviceEventCallback event " << EventType;
     break;
