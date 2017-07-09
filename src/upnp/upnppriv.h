@@ -60,8 +60,15 @@ private:
   /* Local device helpers */
   UpnpServiceInfo *AddService(UpnpDeviceInfo &info, const char *name);
   UpnpActionInfo *AddAction(UpnpServiceInfo *info, const char *name);
-  UpnpActionArgInfo *AddActionArg(UpnpActionInfo *info, const char *name, const char *related, UpnpActionArgInfo::direction_t dir);
+  UpnpActionArgInfo *AddActionArg(UpnpActionInfo *info, const char *name, const char *related,
+                                  UpnpActionArgInfo::direction_t dir);
+  UpnpStateVarInfo *AddStateVar(UpnpServiceInfo *info, const char *name, bool sendEvents,
+                                UpnpStateVarInfo::datatype_t type);
+  bool AddRenderingControlService(UpnpDeviceInfo &info);
+  bool AddConnectionManagerService(UpnpDeviceInfo &info);
+  bool AddAvTransportService(UpnpDeviceInfo &info);
   bool BuildRendererInfo(UpnpDeviceInfo &info);
+
   bool CreateClient();
   bool CreateRenderer();
 

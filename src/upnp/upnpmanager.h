@@ -24,20 +24,28 @@
 class Application;
 class UpnpManagerPriv;
 
+struct UpnpStateVarInfo {
+  QString name;
+  typedef enum {TYPE_I4, TYPE_UI4, TYPE_STR} datatype_t;
+  datatype_t dataType;
+  bool sendEvents;
+};
+typedef QList<UpnpStateVarInfo> UpnpStateVarList;
+
 struct UpnpActionArgInfo {
   QString name;
   QString relStateVar;
   typedef enum {DIR_IN, DIR_OUT} direction_t;
   direction_t direction;
 };
-
 typedef QList<UpnpActionArgInfo> UpnpActionArgList;
+
 struct UpnpActionInfo {
   QString name;
   UpnpActionArgList args;
 };
-
 typedef QList<UpnpActionInfo> UpnpActionList;
+
 struct UpnpServiceInfo {
   QString type;
   QString id;
@@ -45,6 +53,7 @@ struct UpnpServiceInfo {
   QString controlUrl;
   QString eventSubUrl;
   UpnpActionList actions;
+  UpnpStateVarList stateVars;
   UpnpActionInfo *FindActionByName(QString &name) {
     UpnpActionList::iterator i;
     for (i = actions.begin(); i != actions.end(); i++) {
@@ -54,8 +63,8 @@ struct UpnpServiceInfo {
     return NULL;
   }
 };
-
 typedef QList<UpnpServiceInfo> UpnpServiceList;
+
 struct UpnpDeviceInfo {
   QString udn;
   QString name;

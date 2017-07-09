@@ -133,25 +133,56 @@ bool UpnpDesc::GenerateSCPD(QXmlStreamWriter &out, UpnpServiceInfo &info)
 
   AddSpecVersion(out);
 
+  // actionList
   out.writeStartElement("actionList");
-  UpnpActionList::iterator i;
-  UpnpActionArgList::iterator j;
-  for (i = info.actions.begin(); i != info.actions.end(); i++) {
+  UpnpActionList::iterator action_itr;
+  UpnpActionArgList::iterator arg_itr;
+  for (action_itr = info.actions.begin(); action_itr != info.actions.end(); action_itr++) {
     out.writeStartElement("action");
-    out.writeTextElement("name", i->name);    
-    out.writeStartElement("argumentList");
-    for (j = i->args.begin(); j != i->args.end(); j++) {
-      out.writeStartElement("argument");
-      out.writeTextElement("name", j->name);
-      out.writeTextElement("direction",
-                           j->direction == UpnpActionArgInfo::DIR_OUT?"out":"in");
-      out.writeTextElement("relatedStateVariable", j->relStateVar);
-      out.writeEndElement(); // argument
+    out.writeTextElement("name", action_itr->name);
+    if (!action_itr->args.isEmpty()) {
+      out.writeStartElement("argumentList");
+      for (arg_itr = action_itr->args.begin(); arg_itr != action_itr->args.end(); arg_itr++) {
+        out.writeStartElement("argument");
+        out.writeTextElement("name", arg_itr->name);
+        out.writeTextElement("direction",
+                             arg_itr->direction == UpnpActionArgInfo::DIR_OUT?"out":"in");
+        out.writeTextElement("relatedStateVariable", arg_itr->relStateVar);
+        out.writeEndElement(); // argument
+      }
+      out.writeEndElement(); // ArgumentList
     }
-    out.writeEndElement(); // ArgumentList
     out.writeEndElement(); // action
   }
   out.writeEndElement(); // actionList
+
+  // serviceStateTable
+  out.writeStartElement("serviceStateTable");
+  UpnpStateVarList::iterator stateVar_itr;
+  for (stateVar_itr = info.stateVars.begin(); stateVar_itr != info.stateVars.end(); stateVar_itr++) {
+    out.writeStartElement("stateVariable");
+    out.writeAttribute("sendEvents", stateVar_itr->sendEvents ? "yes" : "no");
+    out.writeTextElement("name", stateVar_itr->name);
+
+    const char *dataTypeStr;
+    switch(stateVar_itr->dataType) {
+    case UpnpStateVarInfo::TYPE_I4:
+      dataTypeStr = "i4";
+      break;
+    case UpnpStateVarInfo::TYPE_UI4:
+      dataTypeStr = "ui4";
+      break;
+    case UpnpStateVarInfo::TYPE_STR:
+      dataTypeStr = "string";
+      break;
+    default:
+      dataTypeStr = "unknown";
+      break;
+    }
+    out.writeTextElement("dataType", dataTypeStr);
+    out.writeEndElement(); // stateVariable
+  }
+  out.writeEndElement(); // serviceStateTable
 
   out.writeEndElement(); // scpd
   out.writeEndDocument();

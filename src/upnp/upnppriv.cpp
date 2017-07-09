@@ -87,6 +87,16 @@ UpnpActionInfo *UpnpManagerPriv::AddAction(UpnpServiceInfo *info, const char *na
   return &info->actions.last();
 }
 
+UpnpStateVarInfo *UpnpManagerPriv::AddStateVar(UpnpServiceInfo *info, const char *name, bool sendEvents,
+                                               UpnpStateVarInfo::datatype_t type)
+{
+  UpnpStateVarInfo stateVar;
+  stateVar.name = name;
+  stateVar.dataType = type;
+  info->stateVars << stateVar;
+  return &info->stateVars.last();
+}
+
 UpnpServiceInfo *UpnpManagerPriv::AddService(UpnpDeviceInfo &info, const char *name)
 {
   UpnpServiceInfo service;
@@ -99,30 +109,47 @@ UpnpServiceInfo *UpnpManagerPriv::AddService(UpnpDeviceInfo &info, const char *n
   return &info.services.last();
 }
 
-bool UpnpManagerPriv::BuildRendererInfo(UpnpDeviceInfo &info)
+bool UpnpManagerPriv::AddRenderingControlService(UpnpDeviceInfo &info)
 {
-  renderer_info_.type = MEDIA_RENDERER_URN;
-  renderer_info_.name = MEDIA_RENDERER_NAME;
-  renderer_info_.udn = "uuid:clementine";
+  //UpnpServiceInfo *service;
+  AddService(renderer_info_, "RenderingControl");
+  return true;
+}
 
+bool UpnpManagerPriv::AddConnectionManagerService(UpnpDeviceInfo &info)
+{
+  //UpnpServiceInfo *service;
+  AddService(renderer_info_, "ConnectionManager");
+  return true;
+}
+
+bool UpnpManagerPriv::AddAvTransportService(UpnpDeviceInfo &info)
+{
   UpnpServiceInfo *service;
   UpnpActionInfo *action;
-
-  service = AddService(renderer_info_, "RenderingControl");
-
-  service = AddService(renderer_info_, "ConnectionManager");
+  //UpnpStateVarInfo *stateVar;
 
   service = AddService(renderer_info_, "AVTransport");
+
   action = AddAction(service, "SetAVTransportURI");
   AddActionArg(action, "InstanceID", "A_ARG_TYPE_InstanceID", UpnpActionArgInfo::DIR_IN);
   AddActionArg(action, "CurrentURI", "AVTransportURI", UpnpActionArgInfo::DIR_IN);
   AddActionArg(action, "CurrentURIMetaData", "AVTransportURIMetaData", UpnpActionArgInfo::DIR_IN);
+
   action = AddAction(service, "SetNextAVTransportURI"); /* Optional */
   AddActionArg(action, "InstanceID", "A_ARG_TYPE_InstanceID", UpnpActionArgInfo::DIR_IN);
   AddActionArg(action, "NexURI", "NextAVTransportURI", UpnpActionArgInfo::DIR_IN);
   AddActionArg(action, "NextURIMetaData", "NextAVTransportURIMetaData", UpnpActionArgInfo::DIR_IN);
+
   action = AddAction(service, "GetMediaInfo");
+  AddActionArg(action, "InstanceID", "A_ARG_TYPE_InstanceID", UpnpActionArgInfo::DIR_IN);
+
   action = AddAction(service, "GetTransportInfo");
+  AddActionArg(action, "InstanceID", "A_ARG_TYPE_InstanceID", UpnpActionArgInfo::DIR_IN);
+  AddActionArg(action, "CurrentTransportState", "TransportState", UpnpActionArgInfo::DIR_OUT);
+  AddActionArg(action, "CurrentTransportStatus", "TransportStatus", UpnpActionArgInfo::DIR_OUT);
+  AddActionArg(action, "CurrentSpeed", "TransportPlaySpeed", UpnpActionArgInfo::DIR_OUT);
+
   action = AddAction(service, "GetPositionInfo");
   action = AddAction(service, "GetDeviceCapabilities");
   action = AddAction(service, "GetTransportSettings");
@@ -137,6 +164,27 @@ bool UpnpManagerPriv::BuildRendererInfo(UpnpDeviceInfo &info)
   /* SetPlayMode optional */
   /* SetRecordQualityMode optional */
   /* GetCurrentTransportActions optional */
+
+  AddStateVar(service, "A_ARG_TYPE_InstanceID", false, UpnpStateVarInfo::TYPE_UI4);
+  AddStateVar(service, "AVTransportURI", false, UpnpStateVarInfo::TYPE_STR);
+  AddStateVar(service, "AVTransportURIMetaData", false, UpnpStateVarInfo::TYPE_STR);
+  AddStateVar(service, "NextAVTransportURI", false, UpnpStateVarInfo::TYPE_STR);
+  AddStateVar(service, "NextAVTransportURIMetaData", false, UpnpStateVarInfo::TYPE_STR);
+  AddStateVar(service, "TransportState", false, UpnpStateVarInfo::TYPE_STR);
+  AddStateVar(service, "TransportStatus", false, UpnpStateVarInfo::TYPE_STR);
+  AddStateVar(service, "TransportPlaySpeed", false, UpnpStateVarInfo::TYPE_STR);
+  return true;
+}
+
+bool UpnpManagerPriv::BuildRendererInfo(UpnpDeviceInfo &info)
+{
+  renderer_info_.type = MEDIA_RENDERER_URN;
+  renderer_info_.name = MEDIA_RENDERER_NAME;
+  renderer_info_.udn = "uuid:clementine";
+
+  AddRenderingControlService(renderer_info_);
+  AddConnectionManagerService(renderer_info_);
+  AddAvTransportService(renderer_info_);
 
   return true;
 }
