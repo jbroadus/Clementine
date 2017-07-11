@@ -99,6 +99,9 @@ class UpnpManager : public SimpleTreeModel<UpnpItem>
  signals:
   void DeviceDiscovered(int row);
   void AddToPlaylist(QMimeData* data);
+  void Stop();
+  void Pause();
+  void Play();
 
  protected:
   void LazyPopulate(UpnpItem *item);
