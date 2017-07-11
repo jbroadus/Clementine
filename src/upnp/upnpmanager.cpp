@@ -39,9 +39,13 @@ UpnpManager::UpnpManager(Application* app, QObject* parent)
     qLog(Error) << "AddDevice Connect failed";
 
   if (!connect(priv_, SIGNAL(DoAction(UpnpActionInfo *)),
-                             SLOT(DoAction(UpnpActionInfo *)),
-                             Qt::BlockingQueuedConnection))
+               SLOT(DoAction(UpnpActionInfo *)),
+               Qt::BlockingQueuedConnection))
       qLog(Error) << "DoAction connect failed";
+
+  connect(this, SIGNAL(Pause()), app_->player(), SLOT(Pause()));
+  connect(this, SIGNAL(Play()), app_->player(), SLOT(PlayPause()));
+  connect(this, SIGNAL(Stop()), app_->player(), SLOT(Stop()));
 
   priv_->SetMgr(this);
 }
@@ -96,20 +100,6 @@ void UpnpManager::DoAction(UpnpActionInfo *action)
 {
   switch(action->id) {
 
-  case UpnpActionInfo::ID_SetAVTransportURI:
-    {
-      UpnpStateVarInfo *uri = action->GetRelatedVarForInArg("CurrentURI");
-      UpnpStateVarInfo *meta = action->GetRelatedVarForInArg("CurrentURIMetaData");
-      if (uri == NULL || meta == NULL)
-        return;
-
-      qLog(Debug) << "URI " << uri->value;
-
-      SongMimeData *data = MetaToMimeData(meta->value, uri->value);
-
-      emit AddToPlaylist(data);
-    }
-    break;
   case UpnpActionInfo::ID_GetTransportInfo:
     //qLog(Debug) << "Action GetTransportInfo";
     if (!action->SetOutArgVal("CurrentTransportState","STOPPED"))
@@ -141,9 +131,38 @@ void UpnpManager::DoAction(UpnpActionInfo *action)
     }
     break;
 
+  case UpnpActionInfo::ID_Pause:
+    //qLog(Debug) << "PAUSE";
+    emit Pause();
+    break;
+
+  case UpnpActionInfo::ID_Play:
+    //qLog(Debug) << "PLAY";
+    emit Play();
+    break;
+
+  case UpnpActionInfo::ID_SetAVTransportURI:
+    {
+      UpnpStateVarInfo *uri = action->GetRelatedVarForInArg("CurrentURI");
+      UpnpStateVarInfo *meta = action->GetRelatedVarForInArg("CurrentURIMetaData");
+      if (uri == NULL || meta == NULL)
+        return;
+
+      //qLog(Debug) << "URI " << uri->value;
+
+      SongMimeData *data = MetaToMimeData(meta->value, uri->value);
+
+      emit AddToPlaylist(data);
+    }
+    break;
+
+  case UpnpActionInfo::ID_Stop:
+    //qLog(Debug) << "STOP";
+    emit Stop();
+    break;
 
   default:
-    qLog(Debug) << "Action " << action->name;
+    qLog(Debug) << "Unhanded action " << action->name;
   }
 }
 
