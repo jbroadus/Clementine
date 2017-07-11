@@ -18,68 +18,16 @@
 #ifndef UPNPMANAGER_H
 #define UPNPMANAGER_H
 
+#include "upnpdatatypes.h"
 #include "core/simpletreemodel.h"
 #include "core/simpletreeitem.h"
 
+class QMimeData;
 class Application;
+class SongMimeData;
 class UpnpManagerPriv;
 
-struct UpnpStateVarInfo {
-  QString name;
-  typedef enum {TYPE_I4, TYPE_UI4, TYPE_STR} datatype_t;
-  datatype_t dataType;
-  bool sendEvents;
-};
-typedef QList<UpnpStateVarInfo> UpnpStateVarList;
-
-struct UpnpActionArgInfo {
-  QString name;
-  QString relStateVar;
-  typedef enum {DIR_IN, DIR_OUT} direction_t;
-  direction_t direction;
-};
-typedef QList<UpnpActionArgInfo> UpnpActionArgList;
-
-struct UpnpActionInfo {
-  QString name;
-  UpnpActionArgList args;
-};
-typedef QList<UpnpActionInfo> UpnpActionList;
-
-struct UpnpServiceInfo {
-  QString type;
-  QString id;
-  QString scpdUrl;
-  QString controlUrl;
-  QString eventSubUrl;
-  UpnpActionList actions;
-  UpnpStateVarList stateVars;
-  UpnpActionInfo *FindActionByName(QString &name) {
-    UpnpActionList::iterator i;
-    for (i = actions.begin(); i != actions.end(); i++) {
-      if (i->name == name)
-        return &(*i); 
-    }
-    return NULL;
-  }
-};
-typedef QList<UpnpServiceInfo> UpnpServiceList;
-
-struct UpnpDeviceInfo {
-  QString udn;
-  QString name;
-  QString type;
-  UpnpServiceList services;
-  UpnpServiceInfo *FindServiceById(QString &id) {
-    UpnpServiceList::iterator i;
-    for (i = services.begin(); i != services.end(); i++) {
-      if (i->id == id)
-        return &(*i); 
-    }
-    return NULL;
-  }
-};
-
+/* Tree items */
 class UpnpItem : public SimpleTreeItem<UpnpItem>
 {
  public:
@@ -128,6 +76,8 @@ class UpnpService : public UpnpItem
   UpnpServiceInfo &info_;
 };
 
+
+
 class UpnpManager : public SimpleTreeModel<UpnpItem>
 {
   Q_OBJECT
@@ -142,6 +92,7 @@ class UpnpManager : public SimpleTreeModel<UpnpItem>
 
  signals:
   void DeviceDiscovered(int row);
+  void AddToPlaylist(QMimeData* data);
 
  protected:
   void LazyPopulate(UpnpItem *item);
@@ -152,8 +103,10 @@ class UpnpManager : public SimpleTreeModel<UpnpItem>
 
  public slots:
   void AddDevice(const UpnpDeviceInfo &info);
+  void DoAction(UpnpActionInfo *action);
 
  private:
+  SongMimeData *MetaToMimeData(QString &meta, QString &uri);
   void AddService(UpnpServiceInfo &info, UpnpDevice *dev);
   
   Application* app_;

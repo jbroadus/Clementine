@@ -140,18 +140,33 @@ bool UpnpDesc::GenerateSCPD(QXmlStreamWriter &out, UpnpServiceInfo &info)
   for (action_itr = info.actions.begin(); action_itr != info.actions.end(); action_itr++) {
     out.writeStartElement("action");
     out.writeTextElement("name", action_itr->name);
-    if (!action_itr->args.isEmpty()) {
-      out.writeStartElement("argumentList");
-      for (arg_itr = action_itr->args.begin(); arg_itr != action_itr->args.end(); arg_itr++) {
-        out.writeStartElement("argument");
-        out.writeTextElement("name", arg_itr->name);
-        out.writeTextElement("direction",
-                             arg_itr->direction == UpnpActionArgInfo::DIR_OUT?"out":"in");
-        out.writeTextElement("relatedStateVariable", arg_itr->relStateVar);
-        out.writeEndElement(); // argument
-      }
-      out.writeEndElement(); // ArgumentList
+
+    out.writeStartElement("argumentList");
+    /* Input arguments */
+    for (arg_itr = action_itr->in_args.begin();
+         arg_itr != action_itr->in_args.end();
+         arg_itr++) {
+      out.writeStartElement("argument");
+      out.writeTextElement("name", arg_itr->name);
+      out.writeTextElement("direction", "in");
+      if (arg_itr->relStateVar)
+        out.writeTextElement("relatedStateVariable",
+                             arg_itr->relStateVar->name);
+      out.writeEndElement(); // argument
     }
+    /* Output arguments */
+    for (arg_itr = action_itr->out_args.begin();
+         arg_itr != action_itr->out_args.end();
+         arg_itr++) {
+      out.writeStartElement("argument");
+      out.writeTextElement("name", arg_itr->name);
+      out.writeTextElement("direction", "out");
+      if (arg_itr->relStateVar)
+        out.writeTextElement("relatedStateVariable",
+                             arg_itr->relStateVar->name);
+      out.writeEndElement(); // argument
+    }
+    out.writeEndElement(); // ArgumentList
     out.writeEndElement(); // action
   }
   out.writeEndElement(); // actionList

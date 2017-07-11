@@ -20,6 +20,7 @@
 #include <QFile>
 #include <QDir>
 #include <upnp/upnpdebug.h>
+#include <upnp/upnptools.h>
 
 #include "upnpdesc.h"
 #include "upnpmanager.h"
@@ -39,7 +40,7 @@ UpnpManagerPriv::UpnpManagerPriv() :
 {
   int rc;
 
-  UpnpSetLogLevel(UPNP_ALL);
+  //UpnpSetLogLevel(UPNP_ALL);
   rc = UpnpInit(NULL, 0);
   if (rc != UPNP_E_SUCCESS) {
     qLog(Error) << "UpnpInit failed with " << rc;
@@ -64,25 +65,38 @@ UpnpManagerPriv::UpnpManagerPriv() :
   }
 }
 
-UpnpActionArgInfo *UpnpManagerPriv::AddActionArg(UpnpActionInfo *info, const char *name, const char *related, UpnpActionArgInfo::direction_t dir)
+UpnpActionArgInfo *UpnpManagerPriv::AddActionArg(UpnpActionInfo *info,
+                                                 const char *name,
+                                                 UpnpStateVarInfo *related,
+                                                 bool input)
 {
   UpnpActionArgInfo arg;
   arg.name = name;
   arg.relStateVar = related;
-  arg.direction = dir;
-  info->args << arg;
-  return &info->args.last();
+  if (input) {
+    info->in_args << arg;
+    return &info->in_args.last();
+  }
+  else {
+    info->out_args << arg;
+    return &info->out_args.last();
+  }
 }
 
-UpnpActionInfo *UpnpManagerPriv::AddAction(UpnpServiceInfo *info, const char *name)
+UpnpActionInfo *UpnpManagerPriv::AddAction(UpnpServiceInfo *info,
+                                           const char *name,
+                                           UpnpActionInfo::id_t id)
 {
   UpnpActionInfo action;
   action.name = name;
+  action.id = id;
   info->actions << action;
   return &info->actions.last();
 }
 
-UpnpStateVarInfo *UpnpManagerPriv::AddStateVar(UpnpServiceInfo *info, const char *name, bool sendEvents,
+UpnpStateVarInfo *UpnpManagerPriv::AddStateVar(UpnpServiceInfo *info,
+                                               const char *name,
+                                               bool sendEvents,
                                                UpnpStateVarInfo::datatype_t type)
 {
   UpnpStateVarInfo stateVar;
@@ -92,7 +106,8 @@ UpnpStateVarInfo *UpnpManagerPriv::AddStateVar(UpnpServiceInfo *info, const char
   return &info->stateVars.last();
 }
 
-UpnpServiceInfo *UpnpManagerPriv::AddService(UpnpDeviceInfo &info, const char *name)
+UpnpServiceInfo *UpnpManagerPriv::AddService(UpnpDeviceInfo &info,
+                                             const char *name)
 {
   UpnpServiceInfo service;
   service.type = QString("urn:schemas-upnp-org:service:%1:1").arg(name);
@@ -118,56 +133,86 @@ bool UpnpManagerPriv::AddConnectionManagerService(UpnpDeviceInfo &info)
   return true;
 }
 
+#define ADDVAR(name, send, type) \
+  UpnpStateVarInfo *name = AddStateVar(service, #name, send, type)
+#define ADDACT(name) \
+  AddAction(service, #name, UpnpActionInfo::ID_##name)
 bool UpnpManagerPriv::AddAvTransportService(UpnpDeviceInfo &info)
 {
   UpnpServiceInfo *service;
   UpnpActionInfo *action;
-  //UpnpStateVarInfo *stateVar;
 
-  service = AddService(renderer_info_, "AVTransport");
+  service = AddService(info, "AVTransport");
+  ADDVAR(A_ARG_TYPE_InstanceID, false, UpnpStateVarInfo::TYPE_UI4);
+  ADDVAR(AbsoluteCounterPosition, false, UpnpStateVarInfo::TYPE_I4);
+  ADDVAR(AbsoluteTimePosition, false, UpnpStateVarInfo::TYPE_STR);
+  ADDVAR(AVTransportURI, false, UpnpStateVarInfo::TYPE_STR);
+  ADDVAR(AVTransportURIMetaData, false, UpnpStateVarInfo::TYPE_STR);
+  ADDVAR(CurrentTrack, false, UpnpStateVarInfo::TYPE_UI4);
+  ADDVAR(CurrentTrackDuration, false, UpnpStateVarInfo::TYPE_STR);
+  ADDVAR(CurrentTrackMetaData, false, UpnpStateVarInfo::TYPE_STR);
+  ADDVAR(CurrentTrackURI, false, UpnpStateVarInfo::TYPE_STR);
+  ADDVAR(NextAVTransportURI, false, UpnpStateVarInfo::TYPE_STR);
+  ADDVAR(NextAVTransportURIMetaData, false, UpnpStateVarInfo::TYPE_STR);
+  ADDVAR(RelativeCounterPosition, false, UpnpStateVarInfo::TYPE_I4);
+  ADDVAR(RelativeTimePosition, false, UpnpStateVarInfo::TYPE_STR);
+  ADDVAR(TransportState, false, UpnpStateVarInfo::TYPE_STR);
+  ADDVAR(TransportStatus, false, UpnpStateVarInfo::TYPE_STR);
+  ADDVAR(TransportPlaySpeed, false, UpnpStateVarInfo::TYPE_STR);
 
-  action = AddAction(service, "SetAVTransportURI");
-  AddActionArg(action, "InstanceID", "A_ARG_TYPE_InstanceID", UpnpActionArgInfo::DIR_IN);
-  AddActionArg(action, "CurrentURI", "AVTransportURI", UpnpActionArgInfo::DIR_IN);
-  AddActionArg(action, "CurrentURIMetaData", "AVTransportURIMetaData", UpnpActionArgInfo::DIR_IN);
+  action = ADDACT(SetAVTransportURI);
+  AddActionArg(action, "InstanceID", A_ARG_TYPE_InstanceID, true);
+  AddActionArg(action, "CurrentURI", AVTransportURI, true);
+  AddActionArg(action, "CurrentURIMetaData", AVTransportURIMetaData, true);
 
-  action = AddAction(service, "SetNextAVTransportURI"); /* Optional */
-  AddActionArg(action, "InstanceID", "A_ARG_TYPE_InstanceID", UpnpActionArgInfo::DIR_IN);
-  AddActionArg(action, "NexURI", "NextAVTransportURI", UpnpActionArgInfo::DIR_IN);
-  AddActionArg(action, "NextURIMetaData", "NextAVTransportURIMetaData", UpnpActionArgInfo::DIR_IN);
+  action = ADDACT(SetNextAVTransportURI); /* Optional */
+  AddActionArg(action, "InstanceID", A_ARG_TYPE_InstanceID, true);
+  AddActionArg(action, "NexURI", NextAVTransportURI, true);
+  AddActionArg(action, "NextURIMetaData", NextAVTransportURIMetaData, true);
 
-  action = AddAction(service, "GetMediaInfo");
-  AddActionArg(action, "InstanceID", "A_ARG_TYPE_InstanceID", UpnpActionArgInfo::DIR_IN);
+  action = ADDACT(GetMediaInfo);
+  AddActionArg(action, "InstanceID", A_ARG_TYPE_InstanceID, true);
 
-  action = AddAction(service, "GetTransportInfo");
-  AddActionArg(action, "InstanceID", "A_ARG_TYPE_InstanceID", UpnpActionArgInfo::DIR_IN);
-  AddActionArg(action, "CurrentTransportState", "TransportState", UpnpActionArgInfo::DIR_OUT);
-  AddActionArg(action, "CurrentTransportStatus", "TransportStatus", UpnpActionArgInfo::DIR_OUT);
-  AddActionArg(action, "CurrentSpeed", "TransportPlaySpeed", UpnpActionArgInfo::DIR_OUT);
+  action = ADDACT(GetTransportInfo);
+  AddActionArg(action, "InstanceID", A_ARG_TYPE_InstanceID, true);
+  AddActionArg(action, "CurrentTransportState", TransportState, false);
+  AddActionArg(action, "CurrentTransportStatus", TransportStatus, false);
+  AddActionArg(action, "CurrentSpeed", TransportPlaySpeed, false);
 
-  action = AddAction(service, "GetPositionInfo");
-  action = AddAction(service, "GetDeviceCapabilities");
-  action = AddAction(service, "GetTransportSettings");
-  action = AddAction(service, "Stop");
-  AddActionArg(action, "InstanceID", "A_ARG_TYPE_InstanceID", UpnpActionArgInfo::DIR_IN);
-  action = AddAction(service, "Play");
-  action = AddAction(service, "Pause"); /* Optional */
+  action = ADDACT(GetPositionInfo);
+  AddActionArg(action, "InstanceID", A_ARG_TYPE_InstanceID, true);
+  AddActionArg(action, "Track", CurrentTrack, false);
+  AddActionArg(action, "TrackDuration", CurrentTrackDuration, false);
+  AddActionArg(action, "TrackMetaData", CurrentTrackMetaData, false);
+  AddActionArg(action, "TrackURI", CurrentTrackURI, false);
+  AddActionArg(action, "RelTime", RelativeTimePosition, false);
+  AddActionArg(action, "AbsTime", AbsoluteTimePosition, false);
+  AddActionArg(action, "RelCount", RelativeCounterPosition, false);
+  AddActionArg(action, "AbsCount", AbsoluteCounterPosition, false);
+
+  action = ADDACT(GetDeviceCapabilities);
+
+  action = ADDACT(GetTransportSettings);
+
+  action = ADDACT(Stop);
+  AddActionArg(action, "InstanceID", A_ARG_TYPE_InstanceID, true);
+
+  action = ADDACT(Play);
+
+  action = ADDACT(Pause); /* Optional */
+
   /* Record optional */
-  action = AddAction(service, "Seek");
-  action = AddAction(service, "Next");
-  action = AddAction(service, "Previous");
+
+  action = ADDACT(Seek);
+
+  action = ADDACT(Next);
+
+  action = ADDACT(Previous);
+
   /* SetPlayMode optional */
   /* SetRecordQualityMode optional */
   /* GetCurrentTransportActions optional */
 
-  AddStateVar(service, "A_ARG_TYPE_InstanceID", false, UpnpStateVarInfo::TYPE_UI4);
-  AddStateVar(service, "AVTransportURI", false, UpnpStateVarInfo::TYPE_STR);
-  AddStateVar(service, "AVTransportURIMetaData", false, UpnpStateVarInfo::TYPE_STR);
-  AddStateVar(service, "NextAVTransportURI", false, UpnpStateVarInfo::TYPE_STR);
-  AddStateVar(service, "NextAVTransportURIMetaData", false, UpnpStateVarInfo::TYPE_STR);
-  AddStateVar(service, "TransportState", false, UpnpStateVarInfo::TYPE_STR);
-  AddStateVar(service, "TransportStatus", false, UpnpStateVarInfo::TYPE_STR);
-  AddStateVar(service, "TransportPlaySpeed", false, UpnpStateVarInfo::TYPE_STR);
   return true;
 }
 
@@ -354,6 +399,11 @@ int UpnpManagerPriv::DiscoveryCallback(Upnp_EventType EventType,
 
 int UpnpManagerPriv::ActionReqCallback(struct Upnp_Action_Request *request)
 {
+  UpnpActionArgList::iterator arg_itr;
+#if 0
+  char *xmlbuff;
+#endif
+
   QString sid(request->ServiceID);
   QString aname(request->ActionName);
 
@@ -369,16 +419,46 @@ int UpnpManagerPriv::ActionReqCallback(struct Upnp_Action_Request *request)
     return -1;
   }
 
-  char *xmlbuff = ixmlPrintNode((IXML_Node *)request->ActionRequest);
+  /* Fill input args */
+  for (arg_itr = action->in_args.begin();
+       arg_itr != action->in_args.end();
+       arg_itr++) {
+    if (arg_itr->relStateVar) {
+      GetNodeStr(arg_itr->relStateVar->value, request->ActionRequest,
+                 arg_itr->name.toAscii().data());
+    }
+  }
+
+#if 0
+  xmlbuff = ixmlPrintNode((IXML_Node *)request->ActionRequest);
   if (xmlbuff) {
     qLog(Debug) << xmlbuff;
     ixmlFreeDOMString(xmlbuff);
   }
+#endif
+
+  /* Blocking */
+  emit DoAction(action);
+
+  /* Add output args */
+  for (arg_itr = action->out_args.begin();
+       arg_itr != action->out_args.end();
+       arg_itr++) {
+    if (arg_itr->relStateVar) {
+      UpnpAddToActionResponse(&request->ActionResult, request->ActionName,
+                              service->type.toAscii().data(),
+                              arg_itr->name.toAscii().data(),
+                              arg_itr->relStateVar->value.toAscii().data());
+    }
+  }
+
+#if 0
   xmlbuff = ixmlPrintNode((IXML_Node *)request->ActionResult);
   if (xmlbuff) {
     qLog(Debug) << xmlbuff;
     ixmlFreeDOMString(xmlbuff);
   }
+#endif
   return 0;
 }
 
