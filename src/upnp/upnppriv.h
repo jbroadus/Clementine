@@ -35,7 +35,7 @@ public:
   void SetMgr(UpnpManager *mgr);
 
 signals:
-  void AddDevice(const UpnpDeviceInfo &info);
+  void AddDevice(UpnpDeviceInfo *info);
   void DoAction(UpnpActionInfo *action);
 
 protected:
