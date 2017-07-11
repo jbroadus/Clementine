@@ -36,6 +36,7 @@ public:
 
 signals:
   void AddDevice(const UpnpDeviceInfo &info);
+  void DoAction(UpnpActionInfo *action);
 
 protected:
   static int ClientEventCallback(Upnp_EventType EventType, const void *Event, void *Cookie);
@@ -59,10 +60,12 @@ private:
 
   /* Local device helpers */
   UpnpServiceInfo *AddService(UpnpDeviceInfo &info, const char *name);
-  UpnpActionInfo *AddAction(UpnpServiceInfo *info, const char *name);
-  UpnpActionArgInfo *AddActionArg(UpnpActionInfo *info, const char *name, const char *related,
-                                  UpnpActionArgInfo::direction_t dir);
-  UpnpStateVarInfo *AddStateVar(UpnpServiceInfo *info, const char *name, bool sendEvents,
+  UpnpActionInfo *AddAction(UpnpServiceInfo *info, const char *name,
+                            UpnpActionInfo::id_t id);
+  UpnpActionArgInfo *AddActionArg(UpnpActionInfo *info, const char *name,
+                                  UpnpStateVarInfo *related, bool input);
+  UpnpStateVarInfo *AddStateVar(UpnpServiceInfo *info, const char *name,
+                                bool sendEvents,
                                 UpnpStateVarInfo::datatype_t type);
   bool AddRenderingControlService(UpnpDeviceInfo &info);
   bool AddConnectionManagerService(UpnpDeviceInfo &info);

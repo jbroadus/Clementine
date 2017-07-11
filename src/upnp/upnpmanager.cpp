@@ -16,8 +16,14 @@
 */
 
 #include "upnpmanager.h"
-#include "core/logging.h"
+
+#include <QDomDocument>
+
 #include "upnppriv.h"
+#include "core/application.h"
+#include "core/logging.h"
+#include "core/player.h"
+#include "playlist/songmimedata.h"
 
 
 UpnpManager::UpnpManager(Application* app, QObject* parent)
@@ -26,11 +32,16 @@ UpnpManager::UpnpManager(Application* app, QObject* parent)
 {
   priv_ = new UpnpManagerPriv();
 
-  /* This signal will come from a non QT thread. */
+  /* Thse signals will come from a non QT thread. */
   if (!connect(priv_, SIGNAL(AddDevice(const UpnpDeviceInfo &)),
                SLOT(AddDevice(const UpnpDeviceInfo &)),
                Qt::BlockingQueuedConnection))
-    qLog(Error) << "Connection failed";
+    qLog(Error) << "AddDevice Connect failed";
+
+  if (!connect(priv_, SIGNAL(DoAction(UpnpActionInfo *)),
+                             SLOT(DoAction(UpnpActionInfo *)),
+                             Qt::BlockingQueuedConnection))
+      qLog(Error) << "DoAction connect failed";
 
   priv_->SetMgr(this);
 }
@@ -57,6 +68,85 @@ void UpnpManager::LazyPopulate(UpnpItem *item)
   return;
 }
 
+SongMimeData *UpnpManager::MetaToMimeData(QString &meta, QString &uri)
+{
+  SongMimeData *data = new SongMimeData();
+
+  Song song;
+
+  QDomDocument doc;
+  QDomElement elem;
+  doc.setContent(meta);
+  QDomNodeList items=doc.elementsByTagName("item");
+  if (!items.isEmpty()) {
+    QDomNode item = items.item(0);
+    QDomElement title = item.firstChildElement("dc:title");
+    QDomElement artist = item.firstChildElement("upnp:artist");
+    QDomElement album = item.firstChildElement("upnp:album");
+    QDomElement res = item.firstChildElement("res");
+    song.Init(title.text(), artist.text(), album.text(), 0);
+  }
+  song.set_url(QUrl(uri));
+
+  data->songs << song;
+  return data;
+}
+
+void UpnpManager::DoAction(UpnpActionInfo *action)
+{
+  switch(action->id) {
+
+  case UpnpActionInfo::ID_SetAVTransportURI:
+    {
+      UpnpStateVarInfo *uri = action->GetRelatedVarForInArg("CurrentURI");
+      UpnpStateVarInfo *meta = action->GetRelatedVarForInArg("CurrentURIMetaData");
+      if (uri == NULL || meta == NULL)
+        return;
+
+      qLog(Debug) << "URI " << uri->value;
+
+      SongMimeData *data = MetaToMimeData(meta->value, uri->value);
+
+      emit AddToPlaylist(data);
+    }
+    break;
+  case UpnpActionInfo::ID_GetTransportInfo:
+    //qLog(Debug) << "Action GetTransportInfo";
+    if (!action->SetOutArgVal("CurrentTransportState","STOPPED"))
+      qLog(Error) << "FAIL";
+
+    action->SetOutArgVal("CurrentSpeed","1");
+
+    switch(app_->player()->GetState()) {
+    case Engine::Empty:
+      action->SetOutArgVal("CurrentTransportStatus","OK");
+      action->SetOutArgVal("CurrentTransportState", "NO_MEDIA_PRESENT");
+      break;
+    case Engine::Idle:
+      action->SetOutArgVal("CurrentTransportStatus","OK");
+      action->SetOutArgVal("CurrentTransportState", "STOPPED");
+      break;
+    case Engine::Playing:
+      action->SetOutArgVal("CurrentTransportStatus","OK");
+      action->SetOutArgVal("CurrentTransportState", "PLAYING");
+      break;
+    case Engine::Paused:
+      action->SetOutArgVal("CurrentTransportStatus","OK");
+      action->SetOutArgVal("CurrentTransportState", "PAUSED_PLAYBACK");
+      break;
+    case Engine::Error:
+      action->SetOutArgVal("CurrentTransportStatus","ERROR_OCCURRED");
+      action->SetOutArgVal("CurrentTransportState", "STOPPED");
+      break;
+    }
+    break;
+
+
+  default:
+    qLog(Debug) << "Action " << action->name;
+  }
+}
+   
 void UpnpManager::AddDevice(const UpnpDeviceInfo &info)
 {
   int idx = FindDeviceByUdn(info.udn);
@@ -75,8 +165,9 @@ void UpnpManager::AddDevice(const UpnpDeviceInfo &info)
   UpnpDevice *dev = new UpnpDevice(info, root_);
   endInsertRows();
 
-  beginInsertRows(ItemToIndex(dev->servicesItem_), dev->servicesItem_->children.count(),
-                    dev->servicesItem_->children.count());
+  beginInsertRows(ItemToIndex(dev->servicesItem_),
+                  dev->servicesItem_->children.count(),
+                  dev->servicesItem_->children.count());
   for (int i=0; i<dev->info_.services.count(); i++) {
     AddService(dev->info_.services[i], dev); 
   }
@@ -87,8 +178,6 @@ void UpnpManager::AddService(UpnpServiceInfo &info, UpnpDevice *dev)
 {
   qLog(Debug) << "New service";
   qLog(Debug) << info.type;
-
-  //if (info.type == "")
 
   new UpnpService(info, dev->servicesItem_);
 }
