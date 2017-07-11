@@ -34,8 +34,8 @@ UpnpManager::UpnpManager(Application* app, QObject* parent)
   priv_ = new UpnpManagerPriv();
 
   /* Thse signals will come from a non QT thread. */
-  if (!connect(priv_, SIGNAL(AddDevice(const UpnpDeviceInfo &)),
-               SLOT(AddDevice(const UpnpDeviceInfo &)),
+  if (!connect(priv_, SIGNAL(AddDevice(UpnpDeviceInfo *)),
+               SLOT(AddDevice(UpnpDeviceInfo *)),
                Qt::BlockingQueuedConnection))
     qLog(Error) << "AddDevice Connect failed";
 
@@ -56,7 +56,7 @@ int UpnpManager::FindDeviceByUdn(const QString& udn) const {
   for (int i = 0; i < root_->children.count(); ++i) {
     UpnpDevice *dev = static_cast<UpnpDevice *>(root_->children[i]);
     Q_ASSERT(dev);
-    if (dev->info_.udn == udn) return i;
+    if (dev->info_->udn == udn) return i;
   }
   return -1;
 }
@@ -147,19 +147,22 @@ void UpnpManager::DoAction(UpnpActionInfo *action)
     qLog(Debug) << "Action " << action->name;
   }
 }
-   
-void UpnpManager::AddDevice(const UpnpDeviceInfo &info)
+
+void UpnpManager::AddDevice(UpnpDeviceInfo *info)
 {
-  int idx = FindDeviceByUdn(info.udn);
+  /* This is already checked on the other side of the signal, but due to the
+     async nature of libupnp, there may be multiple signals in the pipeline. */
+  int idx = FindDeviceByUdn(info->udn);
 
   if (idx != -1) {
+    delete info;
     return;
   }
 
   qLog(Debug) << "New device";
-  qLog(Debug) << info.udn;
-  qLog(Debug) << info.name;
-  qLog(Debug) << info.type;
+  qLog(Debug) << info->udn;
+  qLog(Debug) << info->name;
+  qLog(Debug) << info->type;
 
   beginInsertRows(ItemToIndex(root_), root_->children.count(),
                     root_->children.count());
@@ -169,13 +172,13 @@ void UpnpManager::AddDevice(const UpnpDeviceInfo &info)
   beginInsertRows(ItemToIndex(dev->servicesItem_),
                   dev->servicesItem_->children.count(),
                   dev->servicesItem_->children.count());
-  for (int i=0; i<dev->info_.services.count(); i++) {
-    AddService(dev->info_.services[i], dev); 
+  for (int i=0; i<dev->info_->services.count(); i++) {
+    AddServiceItem(dev->info_->services[i], dev);
   }
   endInsertRows();
 }
 
-void UpnpManager::AddService(UpnpServiceInfo &info, UpnpDevice *dev)
+void UpnpManager::AddServiceItem(UpnpServiceInfo &info, UpnpDevice *dev)
 {
   qLog(Debug) << "New service";
   qLog(Debug) << info.type;

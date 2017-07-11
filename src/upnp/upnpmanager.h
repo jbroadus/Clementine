@@ -45,19 +45,25 @@ class UpnpItem : public SimpleTreeItem<UpnpItem>
   SimpleTreeItem<UpnpItem>(type, parent) {}
 };
 
+/* UpnpDevice takes ownership of the UpnpDeviceInfo passed in. */
 class UpnpDevice : public UpnpItem
 {
  public:
- UpnpDevice(const UpnpDeviceInfo &info, UpnpItem *parent) :
+ UpnpDevice(UpnpDeviceInfo *info, UpnpItem *parent) :
   UpnpItem(Upnp_Device, parent),
     info_(info),
     has_media_server(false)
     {
-      display_text = info.name;
+      display_text = info->name;
       servicesItem_ = new UpnpItem(Upnp_Directory, this);
       servicesItem_->display_text = "services";
     }
-  UpnpDeviceInfo info_;
+  ~UpnpDevice()
+    {
+      delete info_;
+    }
+
+  UpnpDeviceInfo *info_;
   bool has_media_server;
 
   UpnpItem *servicesItem_;
@@ -102,12 +108,12 @@ class UpnpManager : public SimpleTreeModel<UpnpItem>
   int FindDeviceByUdn(const QString& udn) const;
 
  public slots:
-  void AddDevice(const UpnpDeviceInfo &info);
+  void AddDevice(UpnpDeviceInfo *info);
   void DoAction(UpnpActionInfo *action);
 
  private:
   SongMimeData *MetaToMimeData(QString &meta, QString &uri);
-  void AddService(UpnpServiceInfo &info, UpnpDevice *dev);
+  void AddServiceItem(UpnpServiceInfo &info, UpnpDevice *dev);
   
   Application* app_;
   UpnpManagerPriv *priv_;

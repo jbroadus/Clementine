@@ -369,11 +369,13 @@ void UpnpManagerPriv::ParseDoc(IXML_Document *doc)
   }
 
   if (mgr_->FindDeviceByUdn(udn) == -1) {
-    UpnpDeviceInfo info;
-    info.udn = udn;
-    GetNodeStr(info.name, doc, "friendlyName");
-    GetNodeStr(info.type, doc, "deviceType");
-    GetServices(doc, &info);
+    UpnpDeviceInfo *info = new UpnpDeviceInfo;
+    info->udn = udn;
+    GetNodeStr(info->name, doc, "friendlyName");
+    GetNodeStr(info->type, doc, "deviceType");
+    GetServices(doc, info);
+
+    /* UpnpManager takes ownership of info. */
     emit AddDevice(info);
   }
   else {
