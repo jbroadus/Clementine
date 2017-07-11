@@ -116,8 +116,9 @@
 #include "ui/trackselectiondialog.h"
 #include "ui/windows7thumbbar.h"
 #ifdef HAVE_LIBUPNP
-#include "upnp/upnpviewcontainer.h"
+#include "upnp/upnpmanager.h"
 #include "upnp/upnpview.h"
+#include "upnp/upnpviewcontainer.h"
 #endif
 #include "version.h"
 #include "widgets/errordialog.h"
@@ -809,6 +810,11 @@ MainWindow::MainWindow(Application* app, SystemTrayIcon* tray_icon, OSD* osd,
   // Connections to the saved streams service
   connect(InternetModel::Service<SavedRadio>(), SIGNAL(ShowAddStreamDialog()),
           SLOT(AddStream()));
+
+#ifdef HAVE_LIBUPNP
+  connect(app_->upnp_manager(), SIGNAL(AddToPlaylist(QMimeData*)),
+          SLOT(AddToPlaylist(QMimeData*)));
+#endif
 
 #ifdef Q_OS_DARWIN
   mac::SetApplicationHandler(this);
