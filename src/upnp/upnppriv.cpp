@@ -203,8 +203,11 @@ bool UpnpManagerPriv::AddAvTransportService(UpnpDeviceInfo &info)
   AddActionArg(action, "InstanceID", A_ARG_TYPE_InstanceID, true);
 
   action = ADDACT(Play);
+  AddActionArg(action, "InstanceID", A_ARG_TYPE_InstanceID, true);
+  AddActionArg(action, "Speed", TransportPlaySpeed, true);
 
   action = ADDACT(Pause); /* Optional */
+  AddActionArg(action, "InstanceID", A_ARG_TYPE_InstanceID, true);
 
   /* Record optional */
 
