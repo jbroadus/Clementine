@@ -103,10 +103,11 @@ bool UpnpDescDoc::GetNodeStr(QString &str, const char *name)
     tn = ixmlNode_getFirstChild(n);
     str = ixmlNode_getNodeValue(tn);
     ixmlNodeList_free(nl);
+    //qLog(Debug) << "Found " << name << " is " << str;
     return true;
   }
   else {
-    qLog(Error) << "Could not find tag " << name;
+    //qLog(Error) << "Could not find tag " << name;
     return false;
   }
 }
@@ -135,10 +136,11 @@ bool UpnpDescElement::GetNodeStr(QString &str, const char *name)
     tn = ixmlNode_getFirstChild(n);
     str = ixmlNode_getNodeValue(tn);
     ixmlNodeList_free(nl);
+    //qLog(Debug) << "Found " << name << " is " << str;
     return true;
   }
   else {
-    qLog(Error) << "Could not find tag " << name;
+    //qLog(Error) << "Could not find tag " << name;
     return false;
   }
 }
@@ -221,7 +223,16 @@ UpnpActionInfo *UpnpManagerPriv::AddAction(UpnpServiceInfo *info,
   return &info->actions.last();
 }
 
-UpnpStateVarInfo *UpnpManagerPriv::AddStateVar(UpnpServiceInfo *info,
+UpnpActionInfo *UpnpManagerPriv::AddAction(UpnpServiceInfo *service,
+                                           UpnpDescElement &elem)
+{
+  QString name;
+  elem.GetNodeStr(name, "name");
+  //qLog(Debug) << "Action " << name;
+  return AddAction(service, name.toAscii().data(), UpnpActionInfo::ID_Unknown /*todo*/);
+}
+
+UpnpStateVarInfo *UpnpManagerPriv::AddStateVar(UpnpServiceInfo *service,
                                                const char *name,
                                                bool sendEvents,
                                                UpnpStateVarInfo::datatype_t type)
@@ -229,8 +240,30 @@ UpnpStateVarInfo *UpnpManagerPriv::AddStateVar(UpnpServiceInfo *info,
   UpnpStateVarInfo stateVar;
   stateVar.name = name;
   stateVar.dataType = type;
-  info->stateVars << stateVar;
-  return &info->stateVars.last();
+  service->stateVars << stateVar;
+  return &service->stateVars.last();
+}
+
+UpnpStateVarInfo *UpnpManagerPriv::AddStateVar(UpnpServiceInfo *service,
+                                               UpnpDescElement &elem)
+{
+  QString nameStr, dataTypeStr, sendEventAttrStr;
+  elem.GetNodeStr(nameStr, "name");
+  elem.GetNodeStr(sendEventAttrStr, "sendEventsAttribute");
+  elem.GetNodeStr(dataTypeStr, "dataType");
+
+  bool sendEventAttr = (sendEventAttrStr.compare("yes",
+                                                 Qt::CaseInsensitive) == 0);
+  UpnpStateVarInfo::datatype_t dataType;
+  if (dataTypeStr.compare("ui4", Qt::CaseInsensitive) == 0)
+    dataType = UpnpStateVarInfo::TYPE_UI4;
+  else if (dataTypeStr.compare("i4", Qt::CaseInsensitive) == 0)
+    dataType = UpnpStateVarInfo::TYPE_I4;
+  else
+    dataType = UpnpStateVarInfo::TYPE_STR;
+
+  return AddStateVar(service, nameStr.toAscii().data(),
+                     sendEventAttr, dataType);
 }
 
 UpnpServiceInfo *UpnpManagerPriv::AddService(UpnpDeviceInfo &info,
@@ -533,10 +566,8 @@ void UpnpManagerPriv::GetActionsFromSpcd(UpnpDescDoc &doc, UpnpServiceInfo *serv
       int n = ixmlNodeList_length(sl);
       for (int i=0; i<n; i++) {
         IXML_Element *s = (IXML_Element *)ixmlNodeList_item(sl, i);
-        QString name;
         UpnpDescElement elem(&doc, s);
-        elem.GetNodeStr(name, "name");
-        //qLog(Debug) << "Action " << name;
+        AddAction(service, elem);
       }
       ixmlNodeList_free(sl);
     }
@@ -555,10 +586,8 @@ void UpnpManagerPriv::GetStateTableFromSpcd(UpnpDescDoc &doc, UpnpServiceInfo *s
       int n = ixmlNodeList_length(sl);
       for (int i=0; i<n; i++) {
         IXML_Element *s = (IXML_Element *)ixmlNodeList_item(sl, i);
-        QString name;
         UpnpDescElement elem(&doc, s);
-        elem.GetNodeStr(name, "name");
-        //qLog(Debug) << "Variable " << name;
+        AddStateVar(service, elem);
       }
       ixmlNodeList_free(sl);
     }
