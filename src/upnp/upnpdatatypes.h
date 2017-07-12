@@ -92,6 +92,25 @@ struct UpnpActionInfo {
     return arg->relStateVar;
   }
   
+  bool SetOutArgVal(const char *name, int val)
+  {
+    QString strval;
+    strval.number(val);
+    return SetOutArgVal(name, strval.toAscii().data());
+  }
+
+  bool SetOutArgVal(const char *name, unsigned int val)
+  {
+    QString strval;
+    strval.number(val);
+    return SetOutArgVal(name, strval.toAscii().data());
+  }
+
+  bool SetOutArgVal(const char *name, QString &val)
+  {
+    return SetOutArgVal(name, val.toAscii().data());
+  }
+
   bool SetOutArgVal(const char *name, const char *val)
   {
     UpnpActionArgInfo *arg = FindOutArgByName(name);

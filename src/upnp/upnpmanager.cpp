@@ -23,6 +23,8 @@
 #include "core/application.h"
 #include "core/logging.h"
 #include "core/player.h"
+#include "core/utilities.h"
+#include "engines/enginebase.h"
 #include "playlist/songmimedata.h"
 
 
@@ -88,7 +90,16 @@ SongMimeData *UpnpManager::MetaToMimeData(QString &meta, QString &uri)
     QDomElement artist = item.firstChildElement("upnp:artist");
     QDomElement album = item.firstChildElement("upnp:album");
     QDomElement res = item.firstChildElement("res");
-    song.Init(title.text(), artist.text(), album.text(), 0);
+    QDomNamedNodeMap attrs = res.attributes();
+    QString dur = res.attribute("duration");
+#if 0
+    for (int i=0; i<attrs.count(); i++) {
+      QDomNode node = attrs.item(i);
+      qLog(Debug) << "ATTR " << node.nodeName() << " = " << node.nodeValue();
+    }
+#endif
+    song.Init(title.text(), artist.text(), album.text(),
+              Utilities::PrettyTimeToNanosec(dur));
   }
   song.set_url(QUrl(uri));
 
@@ -99,6 +110,27 @@ SongMimeData *UpnpManager::MetaToMimeData(QString &meta, QString &uri)
 void UpnpManager::DoAction(UpnpActionInfo *action)
 {
   switch(action->id) {
+
+  case UpnpActionInfo::ID_GetPositionInfo:
+    {
+      Song song;
+      if (app_->player()->GetCurrentItem())
+        song = app_->player()->GetCurrentItem()->Metadata();
+
+      action->SetOutArgVal("Track", song.track());
+      QString duration = Utilities::PrettyTimeNanosec(song.length_nanosec());
+      action->SetOutArgVal("TrackDuration", duration);
+      action->SetOutArgVal("TrackMetaData","");
+      QString uri = song.url().toString();
+      action->SetOutArgVal("TrackURI", uri);
+      qint64 nsec = app_->player()->engine()->position_nanosec();
+      QString relTime = Utilities::PrettyTimeNanosec(nsec, true);
+      action->SetOutArgVal("RelTime",relTime);
+      action->SetOutArgVal("AbsTime","NOT_IMPLEMENTED");
+      action->SetOutArgVal("RelCount",(int)(nsec/1000000)); /*ms*/
+      action->SetOutArgVal("AbsCount",INT_MAX);
+    }
+    break;
 
   case UpnpActionInfo::ID_GetTransportInfo:
     //qLog(Debug) << "Action GetTransportInfo";
