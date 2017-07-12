@@ -150,6 +150,13 @@ struct UpnpDeviceInfo {
   QString name;
   QString type;
   UpnpServiceList services;
+  typedef enum {
+    FLAG_NONE = 0,
+    FLAG_SERVER = (1<<1),
+    FLAG_PLAYER = (1<<2)
+  } flags_t;
+  flags_t flags;
+
   UpnpServiceInfo *FindServiceById(QString &id) {
     UpnpServiceList::iterator i;
     for (i = services.begin(); i != services.end(); i++) {

@@ -26,11 +26,15 @@
 #include "core/utilities.h"
 #include "engines/enginebase.h"
 #include "playlist/songmimedata.h"
+#include "ui/iconloader.h"
 
 
 
 UpnpManager::UpnpManager(Application* app, QObject* parent)
   : SimpleTreeModel<UpnpItem>(new UpnpItem(this), parent),
+  server_icon_(IconLoader::Load("network-server", IconLoader::Base)),
+  player_icon_(IconLoader::Load("media-playback-start", IconLoader::Base)),
+  unknown_icon_(IconLoader::Load("unknown", IconLoader::Base)),
   app_(app)
 {
   priv_ = new UpnpManagerPriv();
@@ -243,12 +247,32 @@ QVariant UpnpManager::data(const QModelIndex& index, int role) const {
   const UpnpItem *item = IndexToItem(index);
 
   switch (role) {
-  case Qt::DisplayRole: {
+
+  case Qt::DisplayRole:
     return item->display_text;
+
+  case Qt::DecorationRole:
+    {
+      switch(item->type) {
+      case UpnpItem::Upnp_Device:
+        {
+          const UpnpDevice *dev = static_cast<const UpnpDevice *>(item);
+          if (dev->info_->flags & UpnpDeviceInfo::FLAG_SERVER)
+            return server_icon_;
+          else if (dev->info_->flags & UpnpDeviceInfo::FLAG_PLAYER)
+            return player_icon_;
+          else
+            return unknown_icon_;
+        }
+      case UpnpItem::Upnp_Service:
+      default:
+        break;;
+      }
+      default:
+        break;
+    }
   }
-  default:
-    return QVariant();
-  }
+  return QVariant();
 }
 
 Qt::ItemFlags UpnpManager::flags(const QModelIndex& index) const {
