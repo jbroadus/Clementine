@@ -18,6 +18,8 @@
 #ifndef UPNPMANAGER_H
 #define UPNPMANAGER_H
 
+#include <QIcon>
+
 #include "upnpdatatypes.h"
 #include "core/simpletreemodel.h"
 #include "core/simpletreeitem.h"
@@ -117,6 +119,10 @@ class UpnpManager : public SimpleTreeModel<UpnpItem>
  private:
   SongMimeData *MetaToMimeData(QString &meta, QString &uri);
   void AddServiceItem(UpnpServiceInfo &info, UpnpDevice *dev);
+
+  QIcon server_icon_;
+  QIcon player_icon_;
+  QIcon unknown_icon_;
   
   Application* app_;
   UpnpManagerPriv *priv_;
