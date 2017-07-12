@@ -26,6 +26,14 @@
 
 #define DESC_FILE "desc.xml"
 
+const char *UpnpDesc::tag_serviceList = "serviceList";
+const char *UpnpDesc::tag_service = "service";
+const char *UpnpDesc::tag_serviceType = "serviceType";
+const char *UpnpDesc::tag_serviceId = "serviceId";
+const char *UpnpDesc::tag_SCPDURL = "SCPDURL";
+const char *UpnpDesc::tag_controlURL = "controlURL";
+const char *UpnpDesc::tag_eventSubURL = "eventSubURL";
+
 UpnpDesc::UpnpDesc(QString &webdir, QString &dir, UpnpDeviceInfo &info) :
   webdir_(webdir)
 {
@@ -92,15 +100,15 @@ bool UpnpDesc::GenerateDesc(QXmlStreamWriter &out, UpnpDeviceInfo &info)
   out.writeTextElement("friendlyName", info.name);
   out.writeTextElement("UDN", info.udn);
 
-  out.writeStartElement("serviceList");
+  out.writeStartElement(tag_serviceList);
   UpnpServiceList::iterator i;
   for (i = info.services.begin(); i != info.services.end(); i++) {
-    out.writeStartElement("service");
-    out.writeTextElement("serviceType", i->type);
-    out.writeTextElement("serviceId", i->id);
-    out.writeTextElement("SCPDURL", i->scpdUrl);
-    out.writeTextElement("controlURL", i->controlUrl);
-    out.writeTextElement("eventSubURL", i->eventSubUrl);
+    out.writeStartElement(tag_service);
+    out.writeTextElement(tag_serviceType, i->type);
+    out.writeTextElement(tag_serviceId, i->id);
+    out.writeTextElement(tag_SCPDURL, i->scpdUrl);
+    out.writeTextElement(tag_controlURL, i->controlUrl);
+    out.writeTextElement(tag_eventSubURL, i->eventSubUrl);
     out.writeEndElement(); // service
   }
   out.writeEndElement(); // serviceList
