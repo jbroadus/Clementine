@@ -33,6 +33,14 @@ class UpnpDesc
   UpnpDesc(QString &webdir, UpnpServiceInfo &info);
 
   QString GetUrlPath();
+
+  static const char *tag_serviceList;
+  static const char *tag_service;
+  static const char *tag_serviceType;
+  static const char *tag_serviceId;
+  static const char *tag_SCPDURL;
+  static const char *tag_controlURL;
+  static const char *tag_eventSubURL;
  private:
   /* XML generation */
   bool Open();

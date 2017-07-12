@@ -26,6 +26,11 @@
 
 struct UpnpDeviceInfo;
 
+// Wrapper for IXML_Document
+class UpnpDescDoc;
+// Wrapper for IXML_Element
+class UpnpDescElement;
+
 class UpnpManagerPriv : public QObject {
   Q_OBJECT
 
@@ -58,10 +63,9 @@ private:
   int ActionReqCallback(struct Upnp_Action_Request *request);
 
 
-  /* Local device helpers */
   UpnpServiceInfo *AddService(UpnpDeviceInfo &info, UpnpServiceInfo &service);
   UpnpServiceInfo *AddService(UpnpDeviceInfo &info, const char *name);
-  UpnpServiceInfo *AddService(UpnpDeviceInfo &info, IXML_Element *element);
+  UpnpServiceInfo *AddService(UpnpDeviceInfo &info, UpnpDescElement &element);
   UpnpActionInfo *AddAction(UpnpServiceInfo *info, const char *name,
                             UpnpActionInfo::id_t id);
   UpnpActionArgInfo *AddActionArg(UpnpActionInfo *info, const char *name,
@@ -78,11 +82,13 @@ private:
   bool CreateRenderer();
 
   /* XML parsing helpers */
-  void ParseDoc(IXML_Document *doc);
-  void GetServices(IXML_Document *doc, UpnpDeviceInfo *devInfo);
-  int GetNodeStr(QString &str, IXML_Document *doc, const char *name);
-  int GetNodeStr(QString &str, IXML_Element *doc, const char *name);
+  void ParseDeviceDesc(UpnpDescDoc &doc);
+  void GetServicesFromDesc(UpnpDescDoc &doc, UpnpDeviceInfo *devInfo);
 
+  void DownloadSpcd(UpnpServiceInfo *service);
+  void ParseSpcd(UpnpDescDoc &doc, UpnpServiceInfo *service);
+  void GetActionsFromSpcd(UpnpDescDoc &doc, UpnpServiceInfo *service);
+  void GetStateTableFromSpcd(UpnpDescDoc &doc, UpnpServiceInfo *service);
 };
 
 #endif  // UPNPPRIV_H
