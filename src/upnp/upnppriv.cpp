@@ -412,15 +412,15 @@ int UpnpManagerPriv::ActionReqCallback(struct Upnp_Action_Request *request)
   QString sid(request->ServiceID);
   QString aname(request->ActionName);
 
-  qLog(Debug) << "Action " << aname << " on " << sid;
+  //qLog(Debug) << "Action " << aname << " on " << sid;
   UpnpServiceInfo *service = renderer_info_.FindServiceById(sid);
   if (!service) {
-    qLog(Error) << "Could not find service " << sid;
+    qLog(Error) << "Could not find service " << sid << " for action " << aname;
     return -1;
   }
   UpnpActionInfo *action = service->FindActionByName(aname);
   if (!action) {
-    qLog(Error) << "Could not find action " << aname;
+    qLog(Error) << "Could not find action " << aname << " in service " << sid;
     return -1;
   }
 
