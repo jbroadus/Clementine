@@ -112,6 +112,31 @@ UpnpStateVarInfo *UpnpManagerPriv::AddStateVar(UpnpServiceInfo *info,
 }
 
 UpnpServiceInfo *UpnpManagerPriv::AddService(UpnpDeviceInfo &info,
+                                             UpnpServiceInfo &service)
+{
+  info.services << service;
+
+  if (service.type == "urn:schemas-upnp-org:service:ContentDirectory:1")
+    info.flags =
+      UpnpDeviceInfo::flags_t(info.flags | UpnpDeviceInfo::FLAG_SERVER);
+  if (service.type == "urn:schemas-upnp-org:service:AVTransport:1")
+    info.flags =
+      UpnpDeviceInfo::flags_t(info.flags | UpnpDeviceInfo::FLAG_PLAYER);
+
+  return &info.services.last();
+}
+
+UpnpServiceInfo *UpnpManagerPriv::AddService(UpnpDeviceInfo &info,
+                                             IXML_Element *element)
+{
+  UpnpServiceInfo service;
+  GetNodeStr(service.type, element, "serviceType");
+  GetNodeStr(service.id, element, "serviceId");
+
+  return AddService(info, service);
+}
+
+UpnpServiceInfo *UpnpManagerPriv::AddService(UpnpDeviceInfo &info,
                                              const char *name)
 {
   UpnpServiceInfo service;
@@ -120,8 +145,7 @@ UpnpServiceInfo *UpnpManagerPriv::AddService(UpnpDeviceInfo &info,
   service.scpdUrl = QString("/MediaRenderer/%1.xml").arg(name);
   service.eventSubUrl = QString("/MediaRenderer/%1/eventsub").arg(name);
   service.controlUrl = QString("/MediaRenderer/%1/control").arg(name);
-  info.services << service;
-  return &info.services.last();
+  return AddService(info, service);
 }
 
 bool UpnpManagerPriv::AddRenderingControlService(UpnpDeviceInfo &info)
@@ -357,11 +381,8 @@ void UpnpManagerPriv::GetServices(IXML_Document *doc, UpnpDeviceInfo *devInfo)
     if (sl) {
       int n = ixmlNodeList_length(sl);
       for (int i=0; i<n; i++) {
-        UpnpServiceInfo svcInfo;
         IXML_Element *s = (IXML_Element *)ixmlNodeList_item(sl, i);
-        GetNodeStr(svcInfo.type, s, "serviceType");
-        GetNodeStr(svcInfo.id, s, "serviceId");
-        devInfo->services << svcInfo;
+        AddService(*devInfo, s);
       }
       ixmlNodeList_free(sl);
     }
@@ -378,6 +399,7 @@ void UpnpManagerPriv::ParseDoc(IXML_Document *doc)
 
   if (mgr_->FindDeviceByUdn(udn) == -1) {
     UpnpDeviceInfo *info = new UpnpDeviceInfo;
+    info->flags = UpnpDeviceInfo::FLAG_NONE;
     info->udn = udn;
     GetNodeStr(info->name, doc, "friendlyName");
     GetNodeStr(info->type, doc, "deviceType");

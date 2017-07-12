@@ -59,7 +59,9 @@ private:
 
 
   /* Local device helpers */
+  UpnpServiceInfo *AddService(UpnpDeviceInfo &info, UpnpServiceInfo &service);
   UpnpServiceInfo *AddService(UpnpDeviceInfo &info, const char *name);
+  UpnpServiceInfo *AddService(UpnpDeviceInfo &info, IXML_Element *element);
   UpnpActionInfo *AddAction(UpnpServiceInfo *info, const char *name,
                             UpnpActionInfo::id_t id);
   UpnpActionArgInfo *AddActionArg(UpnpActionInfo *info, const char *name,
