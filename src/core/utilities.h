@@ -39,15 +39,16 @@ class QXmlStreamReader;
 struct QMetaObject;
 
 namespace Utilities {
-QString PrettyTime(int seconds);
+QString PrettyTime(int seconds, bool req_hours = false);
 QString PrettyTimeDelta(int seconds);
-QString PrettyTimeNanosec(qint64 nanoseconds);
+QString PrettyTimeNanosec(qint64 nanoseconds, bool req_hours = false);
 QString PrettySize(quint64 bytes);
 QString PrettySize(const QSize& size);
 QString WordyTime(quint64 seconds);
 QString WordyTimeNanosec(qint64 nanoseconds);
 QString Ago(int seconds_since_epoch, const QLocale& locale);
 QString PrettyFutureDate(const QDate& date);
+qint64 PrettyTimeToNanosec(QString &time);
 
 QString ColorToRgba(const QColor& color);
 

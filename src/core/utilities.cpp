@@ -89,7 +89,7 @@ QString PrettyTimeDelta(int seconds) {
   return (seconds >= 0 ? "+" : "-") + PrettyTime(seconds);
 }
 
-QString PrettyTime(int seconds) {
+QString PrettyTime(int seconds, bool req_hours) {
   // last.fm sometimes gets the track length wrong, so you end up with
   // negative times.
   seconds = qAbs(seconds);
@@ -99,7 +99,7 @@ QString PrettyTime(int seconds) {
   seconds %= 60;
 
   QString ret;
-  if (hours)
+  if (hours || req_hours)
     ret.sprintf("%d:%02d:%02d", hours, minutes,
                 seconds);  // NOLINT(runtime/printf)
   else
@@ -108,8 +108,8 @@ QString PrettyTime(int seconds) {
   return ret;
 }
 
-QString PrettyTimeNanosec(qint64 nanoseconds) {
-  return PrettyTime(nanoseconds / kNsecPerSec);
+QString PrettyTimeNanosec(qint64 nanoseconds, bool req_hours) {
+  return PrettyTime(nanoseconds / kNsecPerSec, req_hours);
 }
 
 QString WordyTime(quint64 seconds) {
@@ -153,6 +153,35 @@ QString PrettyFutureDate(const QDate& date) {
   if (delta_days <= 14) return tr("Next week");
 
   return tr("In %1 weeks").arg(delta_days / 7);
+}
+
+qint64 PrettyTimeToNanosec(QString &time)
+{
+  /*
+    Handled format:
+    [[H:]M:]S[.F]
+  */
+
+  qint64 nano = 0;
+  int ind = 0;
+  QStringList list = time.split(":");
+  switch (list.count()) {
+  case 3:
+    /* Hours */
+    nano += (qint64)list[ind++].toInt() * 60 * 60 * kNsecPerSec;
+  case 2:
+    /* Minutes */
+    nano += (qint64)list[ind++].toInt() * 60 * kNsecPerSec;
+  case 1:
+    /* Seconds and fractions */
+    nano += (qint64)(list[ind++].toFloat() * kNsecPerSec);
+    break;
+  default:
+    /* Error */
+    break;
+  }
+
+  return nano;
 }
 
 QString PrettySize(quint64 bytes) {
