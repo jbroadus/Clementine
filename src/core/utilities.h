@@ -48,6 +48,7 @@ QString WordyTime(quint64 seconds);
 QString WordyTimeNanosec(qint64 nanoseconds);
 QString Ago(int seconds_since_epoch, const QLocale& locale);
 QString PrettyFutureDate(const QDate& date);
+qint64 PrettyTimeToNanosec(QString &time);
 
 QString ColorToRgba(const QColor& color);
 

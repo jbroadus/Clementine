@@ -160,6 +160,35 @@ QString PrettyFutureDate(const QDate& date) {
   return tr("In %1 weeks").arg(delta_days / 7);
 }
 
+qint64 PrettyTimeToNanosec(QString &time)
+{
+  /*
+    Handled format:
+    [[H:]M:]S[.F]
+  */
+
+  qint64 nano = 0;
+  int ind = 0;
+  QStringList list = time.split(":");
+  switch (list.count()) {
+  case 3:
+    /* Hours */
+    nano += (qint64)list[ind++].toInt() * 60 * 60 * kNsecPerSec;
+  case 2:
+    /* Minutes */
+    nano += (qint64)list[ind++].toInt() * 60 * kNsecPerSec;
+  case 1:
+    /* Seconds and fractions */
+    nano += (qint64)(list[ind++].toFloat() * kNsecPerSec);
+    break;
+  default:
+    /* Error */
+    break;
+  }
+
+  return nano;
+}
+
 QString PrettySize(quint64 bytes) {
   QString ret;
 
