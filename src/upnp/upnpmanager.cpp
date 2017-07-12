@@ -227,8 +227,10 @@ void UpnpManager::AddDevice(UpnpDeviceInfo *info)
   beginInsertRows(ItemToIndex(dev->servicesItem_),
                   dev->servicesItem_->children.count(),
                   dev->servicesItem_->children.count());
-  for (int i=0; i<dev->info_->services.count(); i++) {
-    AddServiceItem(dev->info_->services[i], dev);
+  UpnpServiceList &list = dev->info_->services;
+  UpnpServiceList::iterator svc_itr;
+  for (svc_itr = list.begin(); svc_itr != list.end(); svc_itr++) {
+    AddServiceItem(*svc_itr, dev);
   }
   endInsertRows();
 }
@@ -238,7 +240,38 @@ void UpnpManager::AddServiceItem(UpnpServiceInfo &info, UpnpDevice *dev)
   qLog(Debug) << "New service";
   qLog(Debug) << info.type;
 
-  new UpnpService(info, dev->servicesItem_);
+  /* Add service item */
+  UpnpService *serviceItem = new UpnpService(info, dev->servicesItem_);
+
+  /* Add actions */
+  UpnpActionList::iterator act_itr;
+  for (act_itr = info.actions.begin();
+       act_itr != info.actions.end(); act_itr++) {
+    AddActionItem(*act_itr, serviceItem);
+  }
+
+  /* Add vars */
+  UpnpStateVarList::iterator var_itr;
+  for (var_itr = info.stateVars.begin();
+       var_itr != info.stateVars.end(); var_itr++) {
+    AddStateVarItem(*var_itr, serviceItem);
+  }
+}
+
+void UpnpManager::AddStateVarItem(UpnpStateVarInfo &info, UpnpService *service)
+{
+  UpnpItem *item = new UpnpItem(UpnpItem::Upnp_Service_Var,
+                                service->varsItem_);
+  item->display_text = info.name;
+  item->lazy_loaded = true;
+}
+
+void UpnpManager::AddActionItem(UpnpActionInfo &info, UpnpService *service)
+{
+  UpnpItem *item = new UpnpItem(UpnpItem::Upnp_Service_Action,
+                                service->actionsItem_);
+  item->display_text = info.name;
+  item->lazy_loaded = true;
 }
 
 QVariant UpnpManager::data(const QModelIndex& index, int role) const {
@@ -266,7 +299,7 @@ QVariant UpnpManager::data(const QModelIndex& index, int role) const {
         }
       case UpnpItem::Upnp_Service:
       default:
-        break;;
+        break;
       }
       default:
         break;

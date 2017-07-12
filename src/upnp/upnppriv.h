@@ -68,11 +68,15 @@ private:
   UpnpServiceInfo *AddService(UpnpDeviceInfo &info, UpnpDescElement &element);
   UpnpActionInfo *AddAction(UpnpServiceInfo *info, const char *name,
                             UpnpActionInfo::id_t id);
+  UpnpActionInfo *AddAction(UpnpServiceInfo *info, UpnpDescElement &element);
   UpnpActionArgInfo *AddActionArg(UpnpActionInfo *info, const char *name,
                                   UpnpStateVarInfo *related, bool input);
-  UpnpStateVarInfo *AddStateVar(UpnpServiceInfo *info, const char *name,
+  UpnpStateVarInfo *AddStateVar(UpnpServiceInfo *service, const char *name,
                                 bool sendEvents,
                                 UpnpStateVarInfo::datatype_t type);
+  UpnpStateVarInfo *AddStateVar(UpnpServiceInfo *service,
+                                UpnpDescElement &elem);
+
   bool AddRenderingControlService(UpnpDeviceInfo &info);
   bool AddConnectionManagerService(UpnpDeviceInfo &info);
   bool AddAvTransportService(UpnpDeviceInfo &info);
