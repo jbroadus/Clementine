@@ -37,6 +37,8 @@ class UpnpItem : public SimpleTreeItem<UpnpItem>
     Upnp_Root,
     Upnp_Device,
     Upnp_Service,
+    Upnp_Service_Var,
+    Upnp_Service_Action,
     Upnp_Directory,
   };
 
@@ -79,9 +81,15 @@ class UpnpService : public UpnpItem
     info_(info)
     {
       display_text = info.type;
+      varsItem_ = new UpnpItem(Upnp_Directory, this);
+      varsItem_->display_text = "Variables";
+      actionsItem_ = new UpnpItem(Upnp_Directory, this);
+      actionsItem_->display_text = "Actions";
       lazy_loaded = true;
     }
   UpnpServiceInfo &info_;
+  UpnpItem *varsItem_;
+  UpnpItem *actionsItem_;
 };
 
 
@@ -119,6 +127,8 @@ class UpnpManager : public SimpleTreeModel<UpnpItem>
  private:
   SongMimeData *MetaToMimeData(QString &meta, QString &uri);
   void AddServiceItem(UpnpServiceInfo &info, UpnpDevice *dev);
+  void AddStateVarItem(UpnpStateVarInfo &info, UpnpService *service);
+  void AddActionItem(UpnpActionInfo &info, UpnpService *service);
 
   QIcon server_icon_;
   QIcon player_icon_;

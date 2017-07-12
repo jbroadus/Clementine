@@ -44,6 +44,7 @@ struct UpnpActionInfo {
   UpnpActionArgList in_args;
   UpnpActionArgList out_args;
   typedef enum {
+    ID_Unknown = 0,
     ID_SetAVTransportURI,
     ID_SetNextAVTransportURI,
     ID_GetMediaInfo,
