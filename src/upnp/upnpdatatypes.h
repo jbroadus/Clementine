@@ -134,9 +134,19 @@ struct UpnpServiceInfo {
   QString eventSubUrl;
   UpnpActionList actions;
   UpnpStateVarList stateVars;
+
   UpnpActionInfo *FindActionByName(QString &name) {
     UpnpActionList::iterator i;
     for (i = actions.begin(); i != actions.end(); i++) {
+      if (i->name == name)
+        return &(*i); 
+    }
+    return NULL;
+  }
+
+  UpnpStateVarInfo *FindStateVarByName(QString &name) {
+    UpnpStateVarList::iterator i;
+    for (i = stateVars.begin(); i != stateVars.end(); i++) {
       if (i->name == name)
         return &(*i); 
     }

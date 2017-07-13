@@ -34,10 +34,44 @@
 #define MEDIA_RENDERER_URN "urn:schemas-upnp-org:device:MediaRenderer:1"
 #define MEDIA_RENDERER_NAME "Clementine"
 
-class UpnpDescDoc
+class UpnpDescDoc;
+
+class UpnpDescBase
+{
+public:
+  UpnpDescBase(UpnpDescDoc *top) :
+    top_(top) {}
+
+  bool GetNodeStr(QString &str, const char *tag)
+  {
+    IXML_Node *n, *tn;
+    IXML_NodeList *nl = GetElementList(tag);
+    if (nl) {
+      n = ixmlNodeList_item(nl, 0);
+      tn = ixmlNode_getFirstChild(n);
+      str = ixmlNode_getNodeValue(tn);
+      ixmlNodeList_free(nl);
+      //qLog(Debug) << "Found " << tag << " is " << str;
+      return true;
+    }
+    else {
+      //qLog(Error) << "Could not find tag " << tag;
+      return false;
+    }
+  }
+
+  bool GetAbsUrl(QString &str, const char *name);
+
+  virtual IXML_NodeList *GetElementList(const char *tag) = 0;
+
+  UpnpDescDoc *top_;
+};
+
+class UpnpDescDoc : public UpnpDescBase
 {
  public:
   UpnpDescDoc(IXML_Document *doc = NULL) :
+    UpnpDescBase(this),
     doc_(doc),
     free_doc_(false)
   {
@@ -47,6 +81,11 @@ class UpnpDescDoc
   {
     if (free_doc_)
       ixmlDocument_free(doc_);
+  }
+
+  virtual IXML_NodeList *GetElementList(const char *tag)
+  {
+    return ixmlDocument_getElementsByTagName(doc_, tag);
   }
 
   bool Download(const char *url)
@@ -86,66 +125,27 @@ class UpnpDescDoc
     }
   }
 
-  bool GetNodeStr(QString &str, const char *name);
-
   QUrl url_;
   IXML_Document *doc_;
   bool free_doc_;
 };
 
-bool UpnpDescDoc::GetNodeStr(QString &str, const char *name)
-{
-  IXML_NodeList *nl;
-  IXML_Node *n, *tn;
-  nl = ixmlDocument_getElementsByTagName(doc_, name);
-  if (nl) {
-    n = ixmlNodeList_item(nl, 0);
-    tn = ixmlNode_getFirstChild(n);
-    str = ixmlNode_getNodeValue(tn);
-    ixmlNodeList_free(nl);
-    //qLog(Debug) << "Found " << name << " is " << str;
-    return true;
-  }
-  else {
-    //qLog(Error) << "Could not find tag " << name;
-    return false;
-  }
-}
-
-class UpnpDescElement
+class UpnpDescElement : public UpnpDescBase
 {
 public:
   UpnpDescElement(UpnpDescDoc *top, IXML_Element *elem) :
-    top_(top),
+    UpnpDescBase(top),
     elem_(elem) {}
 
-  bool GetNodeStr(QString &str, const char *name);
-  bool GetAbsUrl(QString &str, const char *name);
+  virtual IXML_NodeList *GetElementList(const char *tag)
+  {
+    return ixmlElement_getElementsByTagName(elem_, tag);
+  }
 
-  UpnpDescDoc *top_;
   IXML_Element *elem_;
 };
 
-bool UpnpDescElement::GetNodeStr(QString &str, const char *name)
-{
-  IXML_NodeList *nl;
-  IXML_Node *n, *tn;
-  nl = ixmlElement_getElementsByTagName(elem_, name);
-  if (nl) {
-    n = ixmlNodeList_item(nl, 0);
-    tn = ixmlNode_getFirstChild(n);
-    str = ixmlNode_getNodeValue(tn);
-    ixmlNodeList_free(nl);
-    //qLog(Debug) << "Found " << name << " is " << str;
-    return true;
-  }
-  else {
-    //qLog(Error) << "Could not find tag " << name;
-    return false;
-  }
-}
-
-bool UpnpDescElement::GetAbsUrl(QString &str, const char *name)
+bool UpnpDescBase::GetAbsUrl(QString &str, const char *name)
 {
   if (!GetNodeStr(str, name))
     return false;
@@ -157,6 +157,66 @@ bool UpnpDescElement::GetAbsUrl(QString &str, const char *name)
 }
 
 
+
+
+class UpnpElementList
+{
+public:
+  UpnpElementList(UpnpDescDoc &doc, const char *listTag, const char *itemTag) :
+    nodeList(nullptr),
+    nodeCount(0)
+  {
+    IXML_NodeList *listList =
+      ixmlDocument_getElementsByTagName(doc.doc_, listTag);
+    if (listList) {
+      Init(listList, itemTag);
+      ixmlNodeList_free(listList);
+    }
+  }
+
+  UpnpElementList(UpnpDescElement &elem, const char *listTag, const char *itemTag) :
+    nodeList(nullptr),
+    nodeCount(0)
+  {
+    IXML_NodeList *listList =
+      ixmlElement_getElementsByTagName(elem.elem_, listTag);
+    if (listList) {
+      Init(listList, itemTag);
+      ixmlNodeList_free(listList);
+    }
+  }
+
+  ~UpnpElementList()
+  {
+    if (nodeList)
+      ixmlNodeList_free(nodeList);
+  }
+
+  unsigned int count()
+  {
+    return nodeCount;
+  }
+
+  IXML_Element *get(unsigned int index)
+  {
+    if (!nodeList || index >= nodeCount)
+      return nullptr;
+    return (IXML_Element *)ixmlNodeList_item(nodeList, index);
+  }
+
+private:
+  /* Common constructor bits. */
+  void Init(IXML_NodeList *listList, const char *itemTag)
+  {
+    IXML_Node *tn = ixmlNodeList_item(listList, 0);
+    nodeList = ixmlElement_getElementsByTagName((IXML_Element *)tn, itemTag);
+    if(nodeList)
+      nodeCount = ixmlNodeList_length(nodeList);
+  }
+
+  IXML_NodeList *nodeList;
+  unsigned int nodeCount;
+};
 
 
 UpnpManagerPriv::UpnpManagerPriv() :
@@ -185,7 +245,6 @@ UpnpManagerPriv::UpnpManagerPriv() :
     }
   }
 
-  
   qLog(Debug) << "Web root is" << webdir_;
   rc = UpnpSetWebServerRootDir((const char *)webdir_.toAscii().data());
   if (rc != UPNP_E_SUCCESS) {
@@ -194,7 +253,7 @@ UpnpManagerPriv::UpnpManagerPriv() :
   }
 }
 
-UpnpActionArgInfo *UpnpManagerPriv::AddActionArg(UpnpActionInfo *info,
+UpnpActionArgInfo *UpnpManagerPriv::AddActionArg(UpnpActionInfo *action,
                                                  const char *name,
                                                  UpnpStateVarInfo *related,
                                                  bool input)
@@ -203,13 +262,28 @@ UpnpActionArgInfo *UpnpManagerPriv::AddActionArg(UpnpActionInfo *info,
   arg.name = name;
   arg.relStateVar = related;
   if (input) {
-    info->in_args << arg;
-    return &info->in_args.last();
+    action->in_args << arg;
+    return &action->in_args.last();
   }
   else {
-    info->out_args << arg;
-    return &info->out_args.last();
+    action->out_args << arg;
+    return &action->out_args.last();
   }
+}
+
+UpnpActionArgInfo *UpnpManagerPriv::AddActionArg(UpnpActionInfo *action,
+                                                 UpnpServiceInfo *service,
+                                                 UpnpDescElement &element)
+{
+  QString nameStr;
+  QString relatedVar;
+  QString dirStr;
+  element.GetNodeStr(nameStr, "name");
+  element.GetNodeStr(relatedVar, "relatedStateVariable");
+  element.GetNodeStr(dirStr, "direction");
+  bool dir = (dirStr.compare("in", Qt::CaseInsensitive) == 0);
+  UpnpStateVarInfo *stateVar = service->FindStateVarByName(relatedVar);
+  return AddActionArg(action, nameStr.toAscii().data(), stateVar, dir);
 }
 
 UpnpActionInfo *UpnpManagerPriv::AddAction(UpnpServiceInfo *info,
@@ -229,7 +303,8 @@ UpnpActionInfo *UpnpManagerPriv::AddAction(UpnpServiceInfo *service,
   QString name;
   elem.GetNodeStr(name, "name");
   //qLog(Debug) << "Action " << name;
-  return AddAction(service, name.toAscii().data(), UpnpActionInfo::ID_Unknown /*todo*/);
+  UpnpActionInfo *action = AddAction(service, name.toAscii().data(), UpnpActionInfo::ID_Unknown /*todo*/);
+  return action;
 }
 
 UpnpStateVarInfo *UpnpManagerPriv::AddStateVar(UpnpServiceInfo *service,
@@ -466,10 +541,16 @@ bool UpnpManagerPriv::CreateRenderer()
 
   BuildRendererInfo(renderer_info_);
   QString dir(MEDIA_RENDERER_DIR);
+
+  /* Generate desc */
   UpnpDesc desc(webdir_, dir, renderer_info_);
 
-  for (int i=0; i<renderer_info_.services.count(); i++) {
-    UpnpDesc desc(webdir_, renderer_info_.services[i]);
+  UpnpServiceList::iterator svc_itr;
+  for (svc_itr = renderer_info_.services.begin();
+       svc_itr != renderer_info_.services.end();
+       svc_itr++) {
+    /* Generate scpd */
+    UpnpDesc scpd(webdir_, *svc_itr);
   }
 
   addr = UpnpGetServerIpAddress();
@@ -508,21 +589,11 @@ void UpnpManagerPriv::DownloadSpcd(UpnpServiceInfo *service)
 
 void UpnpManagerPriv::GetServicesFromDesc(UpnpDescDoc &doc, UpnpDeviceInfo *devInfo)
 {
-  IXML_NodeList *nl, *sl;
-  nl = ixmlDocument_getElementsByTagName(doc.doc_, "serviceList");
-  if (nl) {
-    IXML_Node *tn = ixmlNodeList_item(nl, 0);
-    sl = ixmlElement_getElementsByTagName((IXML_Element *)tn, "service");
-    if (sl) {
-      int n = ixmlNodeList_length(sl);
-      for (int i=0; i<n; i++) {
-        UpnpDescElement elem(&doc, (IXML_Element *)ixmlNodeList_item(sl, i));
-        UpnpServiceInfo *service = AddService(*devInfo, elem);
-        DownloadSpcd(service);
-      }
-      ixmlNodeList_free(sl);
-    }
-    ixmlNodeList_free(nl);
+  UpnpElementList list(doc, "serviceList", "service");
+  for (int i=0; i<list.count(); i++) {
+    UpnpDescElement elem(&doc, list.get(i));
+    UpnpServiceInfo *service = AddService(*devInfo, elem);
+    DownloadSpcd(service);
   }
 }
 
@@ -555,43 +626,33 @@ void UpnpManagerPriv::ParseSpcd(UpnpDescDoc &doc, UpnpServiceInfo *service)
   GetActionsFromSpcd(doc, service);
 }
 
+void UpnpManagerPriv::GetActionArgsFromSpcd(UpnpDescElement &elem,
+                                            UpnpActionInfo *action,
+                                            UpnpServiceInfo *service)
+{
+  UpnpElementList list(elem, "argumentList", "argument");
+  for (int i=0; i<list.count(); i++) {
+    UpnpDescElement argElem(elem.top_, list.get(i));
+    AddActionArg(action, service, argElem);
+  }
+}
+
 void UpnpManagerPriv::GetActionsFromSpcd(UpnpDescDoc &doc, UpnpServiceInfo *service)
 {
-  IXML_NodeList *nl, *sl;
-  nl = ixmlDocument_getElementsByTagName(doc.doc_, "actionList");
-  if (nl) {
-    IXML_Node *tn = ixmlNodeList_item(nl, 0);
-    sl = ixmlElement_getElementsByTagName((IXML_Element *)tn, "action");
-    if (sl) {
-      int n = ixmlNodeList_length(sl);
-      for (int i=0; i<n; i++) {
-        IXML_Element *s = (IXML_Element *)ixmlNodeList_item(sl, i);
-        UpnpDescElement elem(&doc, s);
-        AddAction(service, elem);
-      }
-      ixmlNodeList_free(sl);
-    }
-    ixmlNodeList_free(nl);
+  UpnpElementList list(doc, "actionList", "action");
+  for (int i=0; i<list.count(); i++) {
+    UpnpDescElement elem(&doc, list.get(i));
+    UpnpActionInfo *action = AddAction(service, elem);
+    GetActionArgsFromSpcd(elem, action, service);
   }
 }
 
 void UpnpManagerPriv::GetStateTableFromSpcd(UpnpDescDoc &doc, UpnpServiceInfo *service)
 {
-  IXML_NodeList *nl, *sl;
-  nl = ixmlDocument_getElementsByTagName(doc.doc_, "serviceStateTable");
-  if (nl) {
-    IXML_Node *tn = ixmlNodeList_item(nl, 0);
-    sl = ixmlElement_getElementsByTagName((IXML_Element *)tn, "stateVariable");
-    if (sl) {
-      int n = ixmlNodeList_length(sl);
-      for (int i=0; i<n; i++) {
-        IXML_Element *s = (IXML_Element *)ixmlNodeList_item(sl, i);
-        UpnpDescElement elem(&doc, s);
-        AddStateVar(service, elem);
-      }
-      ixmlNodeList_free(sl);
-    }
-    ixmlNodeList_free(nl);
+  UpnpElementList list(doc, "serviceStateTable", "stateVariable");
+  for (int i=0; i<list.count(); i++) {
+    UpnpDescElement elem(&doc, list.get(i));
+    AddStateVar(service, elem);
   }
 }
 
