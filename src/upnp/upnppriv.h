@@ -69,8 +69,11 @@ private:
   UpnpActionInfo *AddAction(UpnpServiceInfo *info, const char *name,
                             UpnpActionInfo::id_t id);
   UpnpActionInfo *AddAction(UpnpServiceInfo *info, UpnpDescElement &element);
-  UpnpActionArgInfo *AddActionArg(UpnpActionInfo *info, const char *name,
+  UpnpActionArgInfo *AddActionArg(UpnpActionInfo *action, const char *name,
                                   UpnpStateVarInfo *related, bool input);
+  UpnpActionArgInfo *AddActionArg(UpnpActionInfo *action,
+                                  UpnpServiceInfo *service,
+                                  UpnpDescElement &element);
   UpnpStateVarInfo *AddStateVar(UpnpServiceInfo *service, const char *name,
                                 bool sendEvents,
                                 UpnpStateVarInfo::datatype_t type);
@@ -91,6 +94,8 @@ private:
 
   void DownloadSpcd(UpnpServiceInfo *service);
   void ParseSpcd(UpnpDescDoc &doc, UpnpServiceInfo *service);
+  void GetActionArgsFromSpcd(UpnpDescElement &elem, UpnpActionInfo *action,
+                             UpnpServiceInfo *service);
   void GetActionsFromSpcd(UpnpDescDoc &doc, UpnpServiceInfo *service);
   void GetStateTableFromSpcd(UpnpDescDoc &doc, UpnpServiceInfo *service);
 };
