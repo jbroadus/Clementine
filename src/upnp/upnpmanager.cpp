@@ -19,6 +19,7 @@
 
 #include <QDomDocument>
 
+#include "upnpclient.h"
 #include "upnppriv.h"
 #include "core/application.h"
 #include "core/logging.h"
@@ -40,7 +41,7 @@ UpnpManager::UpnpManager(Application* app, QObject* parent)
   priv_ = new UpnpManagerPriv();
 
   /* Thse signals will come from a non QT thread. */
-  if (!connect(priv_, SIGNAL(AddDevice(UpnpDeviceInfo *)),
+  if (!connect(priv_->client_, SIGNAL(AddDevice(UpnpDeviceInfo *)),
                SLOT(AddDevice(UpnpDeviceInfo *)),
                Qt::BlockingQueuedConnection))
     qLog(Error) << "AddDevice Connect failed";

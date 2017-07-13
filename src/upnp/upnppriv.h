@@ -24,7 +24,7 @@
 
 #include <upnp/upnp.h>
 
-struct UpnpDeviceInfo;
+class UpnpClient;
 
 // Wrapper for IXML_Document
 class UpnpDescDoc;
@@ -36,33 +36,32 @@ class UpnpManagerPriv : public QObject {
 
 public:
   UpnpManagerPriv();
-  ~UpnpManagerPriv() {}
+  ~UpnpManagerPriv();
+
   void SetMgr(UpnpManager *mgr);
 
 signals:
-  void AddDevice(UpnpDeviceInfo *info);
   void DoAction(UpnpActionInfo *action);
 
 protected:
-  static int ClientEventCallback(Upnp_EventType EventType, void *Event, void *Cookie);
   static int RendererEventCallback(Upnp_EventType EventType, void *Event, void *Cookie);
 
-  bool StartAsyncSearch();
 private:
-  UpnpClient_Handle clientHandle;
+  friend class UpnpManager;
+  UpnpClient *client_;
+
+private:
   UpnpDevice_Handle rendererHandle;
   UpnpManager *mgr_;
   QString webdir_;
 
   UpnpDeviceInfo renderer_info_;
-  
   /* Event Callbacks */
-  int DiscoveryCallback(Upnp_EventType EventType,
-                        struct Upnp_Discovery *discovery);
 
   int ActionReqCallback(struct Upnp_Action_Request *request);
 
-
+ private:
+  friend class UpnpClient;
   UpnpServiceInfo *AddService(UpnpDeviceInfo &info, UpnpServiceInfo &service);
   UpnpServiceInfo *AddService(UpnpDeviceInfo &info, const char *name);
   UpnpServiceInfo *AddService(UpnpDeviceInfo &info, UpnpDescElement &element);
@@ -85,19 +84,7 @@ private:
   bool AddAvTransportService(UpnpDeviceInfo &info);
   bool BuildRendererInfo(UpnpDeviceInfo &info);
 
-  bool CreateClient();
   bool CreateRenderer();
-
-  /* XML parsing helpers */
-  void ParseDeviceDesc(UpnpDescDoc &doc);
-  void GetServicesFromDesc(UpnpDescDoc &doc, UpnpDeviceInfo *devInfo);
-
-  void DownloadSpcd(UpnpServiceInfo *service);
-  void ParseSpcd(UpnpDescDoc &doc, UpnpServiceInfo *service);
-  void GetActionArgsFromSpcd(UpnpDescElement &elem, UpnpActionInfo *action,
-                             UpnpServiceInfo *service);
-  void GetActionsFromSpcd(UpnpDescDoc &doc, UpnpServiceInfo *service);
-  void GetStateTableFromSpcd(UpnpDescDoc &doc, UpnpServiceInfo *service);
 };
 
 #endif  // UPNPPRIV_H

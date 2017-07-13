@@ -118,6 +118,7 @@ class UpnpManager : public SimpleTreeModel<UpnpItem>
 
  private:
   friend class UpnpManagerPriv;
+  friend class UpnpClient;
   int FindDeviceByUdn(const QString& udn) const;
 
  public slots:

@@ -22,6 +22,7 @@
 #include <upnp/upnpdebug.h>
 #include <upnp/upnptools.h>
 
+#include "upnpclient.h"
 #include "upnpdesc.h"
 #include "upnpmanager.h"
 #include "upnpwrappers.h"
@@ -36,7 +37,7 @@
 
 UpnpManagerPriv::UpnpManagerPriv() :
   QObject(nullptr),
-  clientHandle (-1),
+  client_(new UpnpClient(this)),
   rendererHandle (-1),
   mgr_ (nullptr)
 {
@@ -65,6 +66,12 @@ UpnpManagerPriv::UpnpManagerPriv() :
     return;
   }
 }
+
+UpnpManagerPriv::~UpnpManagerPriv()
+{
+  delete client_;
+}
+
 
 UpnpActionArgInfo *UpnpManagerPriv::AddActionArg(UpnpActionInfo *action,
                                                  const char *name,
@@ -312,38 +319,9 @@ bool UpnpManagerPriv::BuildRendererInfo(UpnpDeviceInfo &info)
 void UpnpManagerPriv::SetMgr(UpnpManager *mgr)
 {
   mgr_ = mgr;
+  client_->SetMgr(mgr);
 
-  CreateClient();
   CreateRenderer();
-}
-
-#define SEARCH_PATTERN "ssdp:all"
-//#define SEARCH_PATTERN "urn:schemas-upnp-org:device:MediaServer:1"
-bool UpnpManagerPriv::StartAsyncSearch()
-{
-  int rc;
-  qLog(Debug) << "Starting async search";
-  rc = UpnpSearchAsync(clientHandle, 30, SEARCH_PATTERN, this);
-  if (rc != UPNP_E_SUCCESS) {
-    qLog(Error) << "Failed to start asnc search: " << rc;
-    return false;
-  }
-
-  return true;
-}
-
-bool UpnpManagerPriv::CreateClient()
-{
-  int rc;
-  rc = UpnpRegisterClient(ClientEventCallback, this, &clientHandle);
-  if (rc != UPNP_E_SUCCESS) {
-    qLog(Error) << "Failed to register client :" << rc;
-    return false;
-  }
-
-  StartAsyncSearch();
-
-  return true;
 }
 
 bool UpnpManagerPriv::CreateRenderer()
@@ -387,106 +365,6 @@ bool UpnpManagerPriv::CreateRenderer()
   }
   
   return true;
-}
-
-void UpnpManagerPriv::DownloadSpcd(UpnpServiceInfo *service)
-{
-  UpnpDescDoc doc;
-  if (doc.Download(service->scpdUrl)) {
-    ParseSpcd(doc, service);
-  }
-  else {
-    qLog(Error) << "Failed to download " << service->scpdUrl;
-  }
-}
-
-void UpnpManagerPriv::GetServicesFromDesc(UpnpDescDoc &doc, UpnpDeviceInfo *devInfo)
-{
-  UpnpElementList list(doc, "serviceList", "service");
-  for (int i=0; i<list.count(); i++) {
-    UpnpDescElement elem(&doc, list.get(i));
-    UpnpServiceInfo *service = AddService(*devInfo, elem);
-    DownloadSpcd(service);
-  }
-}
-
-void UpnpManagerPriv::ParseDeviceDesc(UpnpDescDoc &doc)
-{
-  QString udn;
-  if (!doc.GetNodeStr(udn, "UDN")) {
-    return;
-  }
-
-  if (mgr_->FindDeviceByUdn(udn) == -1) {
-    UpnpDeviceInfo *info = new UpnpDeviceInfo;
-    info->flags = UpnpDeviceInfo::FLAG_NONE;
-    info->udn = udn;
-    doc.GetNodeStr(info->name, "friendlyName");
-    doc.GetNodeStr(info->type, "deviceType");
-    GetServicesFromDesc(doc, info);
-
-    /* UpnpManager takes ownership of info. */
-    emit AddDevice(info);
-  }
-  else {
-    //qLog(Debug) << "Device already in list";
-  }
-}
-
-void UpnpManagerPriv::ParseSpcd(UpnpDescDoc &doc, UpnpServiceInfo *service)
-{
-  GetStateTableFromSpcd(doc, service);
-  GetActionsFromSpcd(doc, service);
-}
-
-void UpnpManagerPriv::GetActionArgsFromSpcd(UpnpDescElement &elem,
-                                            UpnpActionInfo *action,
-                                            UpnpServiceInfo *service)
-{
-  UpnpElementList list(elem, "argumentList", "argument");
-  for (int i=0; i<list.count(); i++) {
-    UpnpDescElement argElem(elem.top_, list.get(i));
-    AddActionArg(action, service, argElem);
-  }
-}
-
-void UpnpManagerPriv::GetActionsFromSpcd(UpnpDescDoc &doc, UpnpServiceInfo *service)
-{
-  UpnpElementList list(doc, "actionList", "action");
-  for (int i=0; i<list.count(); i++) {
-    UpnpDescElement elem(&doc, list.get(i));
-    UpnpActionInfo *action = AddAction(service, elem);
-    GetActionArgsFromSpcd(elem, action, service);
-  }
-}
-
-void UpnpManagerPriv::GetStateTableFromSpcd(UpnpDescDoc &doc, UpnpServiceInfo *service)
-{
-  UpnpElementList list(doc, "serviceStateTable", "stateVariable");
-  for (int i=0; i<list.count(); i++) {
-    UpnpDescElement elem(&doc, list.get(i));
-    AddStateVar(service, elem);
-  }
-}
-
-int UpnpManagerPriv::DiscoveryCallback(Upnp_EventType EventType,
-                                       struct Upnp_Discovery *discovery)
-{
-  if (discovery->ErrCode != UPNP_E_SUCCESS) {
-    qLog(Error) << "UPnP discovery error: " << discovery->ErrCode;
-    return 0;
-  }
-
-  //qLog(Debug) << discovery->Location;
-  UpnpDescDoc doc;
-  if (doc.Download(discovery->Location)) {
-    ParseDeviceDesc(doc);
-  }
-  else {
-    qLog(Error) << "Failed to download " << discovery->Location;
-  }
-
-  return 0;
 }
 
 int UpnpManagerPriv::ActionReqCallback(struct Upnp_Action_Request *request)
@@ -542,39 +420,6 @@ int UpnpManagerPriv::ActionReqCallback(struct Upnp_Action_Request *request)
 #if 1
   UpnpDescDoc(request->ActionResult).Print();
 #endif
-  return 0;
-}
-
-int UpnpManagerPriv::ClientEventCallback(Upnp_EventType EventType, void *Event, void *Cookie)
-{
-  UpnpManagerPriv *priv = (UpnpManagerPriv *)Cookie;
-  Q_ASSERT(priv);
-
-  switch (EventType) {
-  case UPNP_DISCOVERY_SEARCH_RESULT:
-    //qLog(Debug) << "UPNP_DISCOVERY_SEARCH_RESULT";
-    return priv->DiscoveryCallback(EventType, (struct Upnp_Discovery *)Event);
-
-  case UPNP_DISCOVERY_SEARCH_TIMEOUT:
-    qLog(Debug) << "Search timeout. Restarting";
-    priv->StartAsyncSearch();
-    break;
-
-  case UPNP_DISCOVERY_ADVERTISEMENT_ALIVE:
-#if 0
-    qLog(Debug) << "UPNP_DISCOVERY_ADVERTISEMENT_ALIVE";
-    return priv->discoveryCallback(EventType, (struct Upnp_Discovery *)Event);
-#endif
-    break;
-  case UPNP_DISCOVERY_ADVERTISEMENT_BYEBYE:
-#if 0
-    qLog(Debug) << "UPNP_DISCOVERY_ADVERTISEMENT_BYEBYE";
-#endif
-    break;
-  default:
-    qLog(Debug) << "ClientEventCallback event " << EventType;
-    break;
-  }
   return 0;
 }
 
