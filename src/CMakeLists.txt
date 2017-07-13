@@ -1187,12 +1187,14 @@ optional_source(HAVE_LIBUPNP
     upnp/upnppriv.cpp
     upnp/upnpview.cpp
     upnp/upnpviewcontainer.cpp
+    upnp/upnpwrappers.cpp
   HEADERS
     #upnp/upnpdesc.h
     upnp/upnpmanager.h
     upnp/upnppriv.h
     upnp/upnpview.h
     upnp/upnpviewcontainer.h
+    #upnp/upnpwrappers.h
   UI
     upnp/upnpviewcontainer.ui
 )
