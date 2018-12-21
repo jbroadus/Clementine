@@ -60,7 +60,10 @@ ConnectedDevice::ConnectedDevice(const QUrl& url, DeviceLister* lister,
   model_ = new LibraryModel(backend_, app_, this);
 }
 
-ConnectedDevice::~ConnectedDevice() { backend_->deleteLater(); }
+ConnectedDevice::~ConnectedDevice() {
+  delete model_;
+  backend_->deleteLater();
+}
 
 void ConnectedDevice::InitBackendDirectory(const QString& mount_point,
                                            bool first_time, bool rewrite_path) {
