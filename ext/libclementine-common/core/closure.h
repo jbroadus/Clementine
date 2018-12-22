@@ -126,16 +126,16 @@ class Closure : public ClosureBase {
   QMetaMethod slot_;
 };
 
-template <typename T, typename... Args>
+template <typename SP, typename T, typename... Args>
 class SharedClosure : public Closure<Args...> {
  public:
-  SharedClosure(QSharedPointer<T> sender, const char* signal, QObject* receiver,
+  SharedClosure(SP sender, const char* signal, QObject* receiver,
                 const char* slot, const Args&... args)
       : Closure<Args...>(sender.data(), signal, receiver, slot, args...),
         data_(sender) {}
 
  private:
-  QSharedPointer<T> data_;
+  SP data_;
 };
 
 class CallbackClosure : public ClosureBase {
@@ -163,7 +163,16 @@ template <typename T, typename... Args>
 _detail::ClosureBase* NewClosure(QSharedPointer<T> sender, const char* signal,
                                  QObject* receiver, const char* slot,
                                  const Args&... args) {
-  return new _detail::SharedClosure<T, Args...>(sender, signal, receiver, slot,
+  return new _detail::SharedClosure<QSharedPointer<T>, T, Args...>(sender, signal, receiver, slot,
+                                                args...);
+}
+
+// std::shared_ptr variant
+template <typename T, typename... Args>
+_detail::ClosureBase* NewClosure(std::shared_ptr<T> sender, const char* signal,
+                                 QObject* receiver, const char* slot,
+                                 const Args&... args) {
+  return new _detail::SharedClosure<std::shared_ptr<T>, T, Args...>(sender, signal, receiver, slot,
                                                 args...);
 }
 
@@ -193,6 +202,15 @@ _detail::ClosureBase* NewClosure(QObject* sender, const char* signal,
 
 template <typename T, typename... Args>
 _detail::ClosureBase* NewClosure(QFuture<T> future, QObject* receiver,
+                                 const char* slot, const Args&... args) {
+  QFutureWatcher<T>* watcher = new QFutureWatcher<T>;
+  watcher->setFuture(future);
+  QObject::connect(watcher, SIGNAL(finished()), watcher, SLOT(deleteLater()));
+  return NewClosure(watcher, SIGNAL(finished()), receiver, slot, args...);
+}
+
+template <typename T, typename... Args>
+_detail::ClosureBase* NewClosure(QFuture<T> future, std::shared_ptr<T> receiver,
                                  const char* slot, const Args&... args) {
   QFutureWatcher<T>* watcher = new QFutureWatcher<T>;
   watcher->setFuture(future);
