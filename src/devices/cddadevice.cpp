@@ -35,7 +35,7 @@ CddaDevice::CddaDevice(const QUrl& url, DeviceLister* lister,
   connect(&cdda_song_loader_, SIGNAL(SongsMetadataLoaded(SongList)),
       this, SLOT(SongsLoaded(SongList)));
   connect(this, SIGNAL(SongsDiscovered(SongList)),
-      model_, SLOT(SongsDiscovered(SongList)));
+      model_.get(), SLOT(SongsDiscovered(SongList)));
 }
 
 CddaDevice::~CddaDevice() {}

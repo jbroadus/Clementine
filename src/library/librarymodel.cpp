@@ -751,9 +751,18 @@ void LibraryModel::LazyPopulate(LibraryItem* parent, bool signal) {
 void LibraryModel::ResetAsync() {
   QFuture<LibraryModel::QueryResult> future =
       QtConcurrent::run(this, &LibraryModel::RunQuery, root_);
-  NewClosure(future, this,
-             SLOT(ResetAsyncQueryFinished(QFuture<LibraryModel::QueryResult>)),
-             future);
+  try {
+    std::shared_ptr<LibraryModel> self = shared_from_this();
+    NewClosure(future, self,
+               SLOT(ResetAsyncQueryFinished(QFuture<LibraryModel::QueryResult>)),
+               future);
+  } catch (std::exception& e) {
+    qLog(Info) << "COULD NOT GET SHARED POINTER";
+    NewClosure(future, this,
+               SLOT(ResetAsyncQueryFinished(QFuture<LibraryModel::QueryResult>)),
+               future);
+  }
+
 }
 
 void LibraryModel::ResetAsyncQueryFinished(

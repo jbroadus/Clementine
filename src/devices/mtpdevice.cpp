@@ -48,6 +48,7 @@ MtpDevice::~MtpDevice() {}
 
 bool MtpDevice::Init() {
   InitBackendDirectory("/", first_time_, false);
+  model_->Init();
 
   loader_ =
       new MtpLoader(url_, app_->task_manager(), backend_, shared_from_this());
@@ -56,8 +57,6 @@ bool MtpDevice::Init() {
     loader_ = nullptr;
     return false;
   }
-
-  model_->Init();
 
   loader_->moveToThread(loader_thread_);
 

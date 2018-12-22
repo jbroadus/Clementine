@@ -55,7 +55,7 @@ class ConnectedDevice : public QObject,
 
   DeviceLister* lister() const { return lister_; }
   QString unique_id() const { return unique_id_; }
-  LibraryModel* model() const { return model_; }
+  LibraryModel* model() const { return model_.get(); }
   QUrl url() const { return url_; }
   int song_count() const { return song_count_; }
 
@@ -83,7 +83,7 @@ signals:
   DeviceManager* manager_;
 
   LibraryBackend* backend_;
-  LibraryModel* model_;
+  std::shared_ptr<LibraryModel> model_;
 
   int song_count_;
 

@@ -40,7 +40,6 @@ ConnectedDevice::ConnectedDevice(const QUrl& url, DeviceLister* lister,
       database_id_(database_id),
       manager_(manager),
       backend_(nullptr),
-      model_(nullptr),
       song_count_(0) {
   qLog(Info) << "connected" << url << unique_id << first_time;
 
@@ -57,11 +56,10 @@ ConnectedDevice::ConnectedDevice(const QUrl& url, DeviceLister* lister,
                  QString("device_%1_fts").arg(database_id));
 
   // Create the model
-  model_ = new LibraryModel(backend_, app_, this);
+  model_.reset(new LibraryModel(backend_, app_, this));
 }
 
 ConnectedDevice::~ConnectedDevice() {
-  delete model_;
   backend_->deleteLater();
 }
 

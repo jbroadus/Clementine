@@ -43,7 +43,8 @@ class Search;
 
 class QSettings;
 
-class LibraryModel : public SimpleTreeModel<LibraryItem> {
+class LibraryModel : public SimpleTreeModel<LibraryItem>,
+                     public std::enable_shared_from_this<LibraryModel> {
   Q_OBJECT
   Q_ENUMS(GroupBy);
 
