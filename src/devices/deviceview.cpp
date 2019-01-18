@@ -31,6 +31,7 @@
 #include "core/deletefiles.h"
 #include "core/mergedproxymodel.h"
 #include "core/mimedata.h"
+#include "deviceconnect.h"
 #include "devicelister.h"
 #include "devicemanager.h"
 #include "deviceproperties.h"
@@ -145,6 +146,7 @@ DeviceView::DeviceView(QWidget* parent)
       app_(nullptr),
       merged_model_(nullptr),
       sort_model_(nullptr),
+      connect_dialog_(new DeviceConnect),
       properties_dialog_(new DeviceProperties),
       device_menu_(nullptr),
       library_menu_(nullptr) {
@@ -184,6 +186,7 @@ void DeviceView::SetApplication(Application* app) {
 
   setModel(merged_model_);
   properties_dialog_->SetDeviceManager(app_->device_manager());
+  connect_dialog_->SetDeviceManager(app_->device_manager());
 
   organise_dialog_.reset(new OrganiseDialog(app_->task_manager()));
   organise_dialog_->SetDestinationModel(app_->directory_model());
@@ -195,12 +198,8 @@ void DeviceView::contextMenuEvent(QContextMenuEvent* e) {
     library_menu_ = new QMenu(this);
 
     // Device menu
-    eject_action_ = device_menu_->addAction(
-        IconLoader::Load("media-eject", IconLoader::Base),
-        tr("Safely remove device"), this, SLOT(Unmount()));
-    forget_action_ = device_menu_->addAction(
-        IconLoader::Load("list-remove", IconLoader::Base), tr("Forget device"),
-        this, SLOT(Forget()));
+    connect_as_action_ = device_menu_->addAction(tr("Connect as..."), this,
+                                                 SLOT(ConnectAs()));
     device_menu_->addSeparator();
     properties_action_ = device_menu_->addAction(
         IconLoader::Load("configure", IconLoader::Base),
@@ -234,9 +233,12 @@ void DeviceView::contextMenuEvent(QContextMenuEvent* e) {
     const bool is_plugged_in = app_->device_manager()->GetLister(device_index);
     const bool is_remembered =
         app_->device_manager()->GetDatabaseId(device_index) != -1;
+    const bool is_connected =
+        app_->device_manager()->GetConnectedDevice(device_index) != NULL;
 
     forget_action_->setEnabled(is_remembered);
     eject_action_->setEnabled(is_plugged_in);
+    connect_as_action_->setEnabled(is_plugged_in && !is_connected);
 
     device_menu_->popup(e->globalPos());
   } else if (library_index.isValid()) {
@@ -287,6 +289,10 @@ void DeviceView::Connect() {
   QModelIndex device_idx = MapToDevice(menu_index_);
   app_->device_manager()->data(device_idx,
                                MusicStorage::Role_StorageForceConnect);
+}
+
+void DeviceView::ConnectAs() {
+  connect_dialog_->ConnectDevice(MapToDevice(menu_index_));
 }
 
 void DeviceView::DeviceConnected(QModelIndex idx) {

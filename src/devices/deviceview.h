@@ -29,6 +29,7 @@ class QMenu;
 class QSortFilterProxyModel;
 
 class Application;
+class DeviceConnect;
 class DeviceManager;
 class DeviceProperties;
 class LibraryModel;
@@ -60,6 +61,7 @@ class DeviceView : public AutoExpandingTreeView {
  private slots:
   // Device menu actions
   void Connect();
+  void ConnectAs();
   void Unmount();
   void Forget();
   void Properties();
@@ -90,11 +92,13 @@ class DeviceView : public AutoExpandingTreeView {
   MergedProxyModel* merged_model_;
   QSortFilterProxyModel* sort_model_;
 
+  std::unique_ptr<DeviceConnect> connect_dialog_;
   std::unique_ptr<DeviceProperties> properties_dialog_;
   std::unique_ptr<OrganiseDialog> organise_dialog_;
 
   QMenu* device_menu_;
   QAction* eject_action_;
+  QAction* connect_as_action_;
   QAction* forget_action_;
   QAction* properties_action_;
 
