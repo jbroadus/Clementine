@@ -1346,6 +1346,10 @@ if(HAVE_LIBPULSE)
   target_link_libraries(clementine_lib ${LIBPULSE_LIBRARIES})
 endif()
 
+if(HAVE_LIBUPNP)
+  target_link_libraries(clementine_lib ${LIBUPNP_LIBRARIES})
+endif()
+
 if(HAVE_ALSA)
   target_link_libraries(clementine_lib ${ALSA_LIBRARIES})
 endif(HAVE_ALSA)
