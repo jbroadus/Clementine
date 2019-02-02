@@ -1206,6 +1206,23 @@ optional_source(HAVE_SEAFILE
     internet/seafile/seafilesettingspage.ui
 )
 
+# UPnP support
+optional_source(HAVE_LIBUPNP
+  SOURCES
+    devices/upnpclient.cpp
+    devices/upnpdevice.cpp
+    devices/upnpdeviceinfo.cpp
+    devices/upnplister.cpp
+    devices/upnpserviceinfo.cpp
+  HEADERS
+    devices/upnpclient.h
+    devices/upnpdevice.h
+    devices/upnpdeviceinfo.h
+    devices/upnpdoc.h
+    devices/upnplister.h
+    devices/upnpserviceinfo.h
+)
+
 # Pulse audio integration
 optional_source(HAVE_LIBPULSE
   INCLUDE_DIRECTORIES

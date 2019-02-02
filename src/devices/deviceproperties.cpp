@@ -38,6 +38,7 @@ DeviceProperties::DeviceProperties(QWidget* parent)
   ui_->setupUi(this);
 
   connect(ui_->open_device, SIGNAL(clicked()), SLOT(OpenDevice()));
+  connect(ui_->fetch_urls, SIGNAL(clicked()), SLOT(FetchUrls()));
 
   // Maximum height of the icon widget
   ui_->icon->setMaximumHeight(
@@ -259,6 +260,12 @@ void DeviceProperties::accept() {
 }
 
 void DeviceProperties::OpenDevice() { manager_->Connect(index_); }
+
+void DeviceProperties::FetchUrls()
+{
+  ui_->urls_stack->setCurrentWidget(ui_->urls_list);
+  ui_->fetch_urls->setEnabled(false);
+}
 
 void DeviceProperties::UpdateFormatsFinished(QFuture<bool> future) {
   updating_formats_ = false;

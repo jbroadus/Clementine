@@ -32,6 +32,7 @@ class Application;
 class ConnectedDevice;
 class DeviceLister;
 class DeviceStateFilterModel;
+class UpnpClient;
 
 class DeviceManager : public SimpleTreeModel<DeviceInfo> {
   Q_OBJECT
@@ -74,6 +75,7 @@ class DeviceManager : public SimpleTreeModel<DeviceInfo> {
   DeviceLister* GetLister(QModelIndex idx) const;
   std::shared_ptr<ConnectedDevice> GetConnectedDevice(QModelIndex idx) const;
   std::shared_ptr<ConnectedDevice> GetConnectedDevice(DeviceInfo* info) const;
+  UpnpClient *GetUpnpClient() { return upnp_client_; }
 
   DeviceInfo* FindDeviceById(const QString& id) const;
   DeviceInfo* FindDeviceByUrl(const QList<QUrl>& url) const;
@@ -131,6 +133,7 @@ class DeviceManager : public SimpleTreeModel<DeviceInfo> {
  private:
   Application* app_;
   DeviceDatabaseBackend* backend_;
+  UpnpClient *upnp_client_;
 
   DeviceStateFilterModel* connected_devices_model_;
 

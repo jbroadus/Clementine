@@ -48,6 +48,11 @@
 #include "cddalister.h"
 #endif
 
+#ifdef HAVE_LIBUPNP
+#include "upnpclient.h"
+#include "upnpdevice.h"
+#include "upnplister.h"
+#endif
 #if defined(Q_OS_DARWIN) and defined(HAVE_LIBMTP)
 #include "macdevicelister.h"
 #endif
@@ -72,8 +77,10 @@ const int DeviceManager::kDeviceIconOverlaySize = 16;
 DeviceManager::DeviceManager(Application* app, QObject* parent)
     : SimpleTreeModel<DeviceInfo>(new DeviceInfo(this), parent),
       app_(app),
+      upnp_client_(NULL),
       not_connected_overlay_(
-          IconLoader::Load("edit-delete", IconLoader::Base)) {
+          IconLoader::Load("edit-delete", IconLoader::Base))
+{
   thread_pool_.setMaxThreadCount(1);
   connect(app_->task_manager(), SIGNAL(TasksChanged()), SLOT(TasksChanged()));
 
@@ -109,6 +116,10 @@ DeviceManager::DeviceManager(Application* app, QObject* parent)
 #if defined(Q_OS_DARWIN) and defined(HAVE_LIBMTP)
   AddLister(new MacDeviceLister);
 #endif
+#ifdef HAVE_LIBUPNP
+  upnp_client_ = new UpnpClient;
+  AddLister(new UpnpLister(upnp_client_));
+#endif
 
   AddDeviceClass<FilesystemDevice>();
 
@@ -122,6 +133,10 @@ DeviceManager::DeviceManager(Application* app, QObject* parent)
 
 #ifdef HAVE_LIBMTP
   AddDeviceClass<MtpDevice>();
+#endif
+
+#ifdef HAVE_LIBUPNP
+  AddDeviceClass<UpnpDevice>();
 #endif
 }
 
