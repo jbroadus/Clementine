@@ -74,6 +74,7 @@ pkg_check_modules(LIBGPOD libgpod-1.0>=0.7.92)
 pkg_check_modules(LIBMTP libmtp>=1.0)
 pkg_check_modules(LIBMYGPO_QT5 libmygpo-qt5>=1.0.9)
 pkg_check_modules(LIBPULSE libpulse)
+pkg_check_modules(LIBUPNP libupnp)
 pkg_check_modules(LIBXML libxml-2.0)
 pkg_check_modules(LIBSPOTIFY libspotify>=12.1.45)
 pkg_check_modules(TAGLIB taglib)
@@ -324,6 +325,10 @@ optional_component(ALSA ON "ALSA integration"
 
 optional_component(LIBPULSE ON "Pulse audio integration"
   DEPENDS "libpulse" LIBPULSE_FOUND
+)
+
+optional_component(LIBUPNP ON "Upnp integration"
+  DEPENDS "libupnp" LIBUPNP_FOUND
 )
 
 optional_component(VISUALISATIONS ON "Visualisations"
