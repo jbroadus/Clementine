@@ -46,6 +46,7 @@ class DeviceProperties : public QDialog {
   void UpdateFormats();
 
  private slots:
+  void FetchUrls();
   void ModelChanged();
   void OpenDevice();
   void UpdateFormatsFinished(QFuture<bool> future);
