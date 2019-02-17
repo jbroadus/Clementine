@@ -21,6 +21,8 @@
 #include "connecteddevice.h"
 #include "core/filesystemmusicstorage.h"
 
+class QFileSystemModel;
+
 class DeviceManager;
 class LibraryWatcher;
 
@@ -36,12 +38,18 @@ class FilesystemDevice : public ConnectedDevice,
   ~FilesystemDevice();
 
   void Init();
+  void ConnectAsync();
 
+  QAbstractItemModel* browse_model() const;
+  QModelIndex browse_root() const;
+  void set_browse_root(QModelIndex& root);
   static QStringList url_schemes() { return QStringList() << "file"; }
 
  private:
   LibraryWatcher* watcher_;
   QThread* watcher_thread_;
+  QFileSystemModel *browse_model_;
+  QModelIndex browse_root_;
 };
 
 #endif  // FILESYSTEMDEVICE_H

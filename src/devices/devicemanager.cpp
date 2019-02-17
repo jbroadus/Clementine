@@ -574,7 +574,11 @@ std::shared_ptr<ConnectedDevice> DeviceManager::Connect(DeviceInfo* info) {
             SLOT(DeviceSongCountUpdated(int)));
     connect(info->device_.get(), SIGNAL(ConnectFinished(const QString&, bool)),
             SLOT(DeviceConnectFinished(const QString&, bool)));
-    ret->ConnectAsync();
+    if (first_time && ret->browse_model()) {
+      emit BrowseDevice(idx);
+    } else {
+      ret->ConnectAsync();
+    }
   }
 
   return ret;

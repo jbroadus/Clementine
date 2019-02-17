@@ -27,6 +27,10 @@
 #include <memory>
 
 #include "connecteddevice.h"
+#include "devicebrowser.h"
+#include "devicelister.h"
+#include "devicemanager.h"
+#include "deviceproperties.h"
 #include "core/application.h"
 #include "core/deletefiles.h"
 #include "core/mergedproxymodel.h"
@@ -145,6 +149,7 @@ DeviceView::DeviceView(QWidget* parent)
       app_(nullptr),
       merged_model_(nullptr),
       sort_model_(nullptr),
+      browse_dialog_(new DeviceBrowser),
       properties_dialog_(new DeviceProperties),
       device_menu_(nullptr),
       library_menu_(nullptr) {
@@ -168,6 +173,8 @@ void DeviceView::SetApplication(Application* app) {
           SLOT(DeviceConnected(QModelIndex)));
   connect(app_->device_manager(), SIGNAL(DeviceDisconnected(QModelIndex)),
           SLOT(DeviceDisconnected(QModelIndex)));
+  connect(app_->device_manager(), SIGNAL(BrowseDevice(QModelIndex)),
+          SLOT(BrowseDevice(QModelIndex)));
 
   sort_model_ = new QSortFilterProxyModel(this);
   sort_model_->setSourceModel(app_->device_manager());
@@ -183,6 +190,7 @@ void DeviceView::SetApplication(Application* app) {
           SLOT(RecursivelyExpand(QModelIndex)));
 
   setModel(merged_model_);
+  browse_dialog_->SetDeviceManager(app_->device_manager());
   properties_dialog_->SetDeviceManager(app_->device_manager());
 
   organise_dialog_.reset(new OrganiseDialog(app_->task_manager()));
@@ -205,6 +213,10 @@ void DeviceView::contextMenuEvent(QContextMenuEvent* e) {
     properties_action_ = device_menu_->addAction(
         IconLoader::Load("configure", IconLoader::Base),
         tr("Device properties..."), this, SLOT(Properties()));
+    browse_action_ = device_menu_->addAction(IconLoader::Load("configure", 
+                                             IconLoader::Base),
+                                             tr("Browse..."),
+                                             this, SLOT(Browse()));
 
     // Library menu
     add_to_playlist_action_ = library_menu_->addAction(
@@ -311,6 +323,10 @@ void DeviceView::DeviceDisconnected(QModelIndex idx) {
   merged_model_->RemoveSubModel(sort_model_->mapFromSource(idx));
 }
 
+void DeviceView::BrowseDevice(QModelIndex idx) {
+  browse_dialog_->BrowseDevice(idx);
+}
+
 void DeviceView::Forget() {
   QModelIndex device_idx = MapToDevice(menu_index_);
   QString unique_id = app_->device_manager()
@@ -335,6 +351,10 @@ void DeviceView::Forget() {
 
 void DeviceView::Properties() {
   properties_dialog_->ShowDevice(MapToDevice(menu_index_));
+}
+
+void DeviceView::Browse() {
+  browse_dialog_->BrowseDevice(MapToDevice(menu_index_));
 }
 
 void DeviceView::mouseDoubleClickEvent(QMouseEvent* event) {

@@ -121,6 +121,7 @@ set(SOURCES
   covers/musicbrainzcoverprovider.cpp
 
   devices/connecteddevice.cpp
+  devices/devicebrowser.cpp
   devices/devicedatabasebackend.cpp
   devices/devicelister.cpp
   devices/devicemanager.cpp
@@ -443,6 +444,7 @@ set(HEADERS
   covers/musicbrainzcoverprovider.h
 
   devices/connecteddevice.h
+  devices/devicebrowser.h
   devices/devicedatabasebackend.h
   devices/devicelister.h
   devices/devicemanager.h
@@ -684,6 +686,7 @@ set(HEADERS
 set(UI
   covers/coversearchstatisticsdialog.ui
 
+  devices/devicebrowser.ui
   devices/deviceproperties.ui
   devices/deviceviewcontainer.ui
 

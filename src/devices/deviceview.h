@@ -29,6 +29,7 @@ class QMenu;
 class QSortFilterProxyModel;
 
 class Application;
+class DeviceBrowser;
 class DeviceManager;
 class DeviceProperties;
 class LibraryModel;
@@ -63,6 +64,7 @@ class DeviceView : public AutoExpandingTreeView {
   void Unmount();
   void Forget();
   void Properties();
+  void Browse();
 
   // Library menu actions
   void Load();
@@ -73,6 +75,7 @@ class DeviceView : public AutoExpandingTreeView {
 
   void DeviceConnected(QModelIndex idx);
   void DeviceDisconnected(QModelIndex idx);
+  void BrowseDevice(QModelIndex idx);
 
   void DeleteFinished(const SongList& songs_with_errors);
 
@@ -90,10 +93,12 @@ class DeviceView : public AutoExpandingTreeView {
   MergedProxyModel* merged_model_;
   QSortFilterProxyModel* sort_model_;
 
+  std::unique_ptr<DeviceBrowser> browse_dialog_;
   std::unique_ptr<DeviceProperties> properties_dialog_;
   std::unique_ptr<OrganiseDialog> organise_dialog_;
 
   QMenu* device_menu_;
+  QAction* browse_action_;
   QAction* eject_action_;
   QAction* forget_action_;
   QAction* properties_action_;

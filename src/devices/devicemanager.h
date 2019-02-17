@@ -104,6 +104,7 @@ class DeviceManager : public SimpleTreeModel<DeviceInfo> {
   void DeviceConnected(QModelIndex idx);
   void DeviceDisconnected(QModelIndex idx);
   void DeviceCreatedFromDb(DeviceInfo* info);
+  void BrowseDevice(QModelIndex idx);                                        
 
  private slots:
   void PhysicalDeviceAdded(const QString& id);

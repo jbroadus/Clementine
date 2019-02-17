@@ -18,6 +18,7 @@
 #ifndef CONNECTEDDEVICE_H
 #define CONNECTEDDEVICE_H
 
+#include <QModelIndex>
 #include <QObject>
 #include <QStringList>
 #include <QUrl>
@@ -32,6 +33,7 @@ class DeviceLister;
 class DeviceManager;
 class LibraryBackend;
 class LibraryModel;
+class QAbstractItemModel;
 
 class ConnectedDevice : public QObject,
                         public virtual MusicStorage,
@@ -56,6 +58,9 @@ class ConnectedDevice : public QObject,
   DeviceLister* lister() const { return lister_; }
   QString unique_id() const { return unique_id_; }
   LibraryModel* model() const { return model_; }
+  virtual QAbstractItemModel* browse_model() const { return nullptr; }
+  virtual QModelIndex browse_root() const { return QModelIndex(); };
+  virtual void set_browse_root(QModelIndex& root) {}
   QUrl url() const { return url_; }
   int song_count() const { return song_count_; }
 

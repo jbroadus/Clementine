@@ -27,6 +27,10 @@
 #include "library/librarymodel.h"
 #include "library/librarywatcher.h"
 
+#include <QFileSystemModel>
+#include <QThread>
+#include <QtDebug>
+
 FilesystemDevice::FilesystemDevice(const QUrl& url, DeviceLister* lister,
                                    const QString& unique_id,
                                    DeviceManager* manager, Application* app,
@@ -35,7 +39,8 @@ FilesystemDevice::FilesystemDevice(const QUrl& url, DeviceLister* lister,
       ConnectedDevice(url, lister, unique_id, manager, app, database_id,
                       first_time),
       watcher_(new LibraryWatcher),
-      watcher_thread_(new QThread(this)) {
+      watcher_thread_(new QThread(this)),
+      browse_model_(new QFileSystemModel(this)) {
   watcher_->moveToThread(watcher_thread_);
   watcher_thread_->start(QThread::IdlePriority);
 
@@ -70,8 +75,11 @@ FilesystemDevice::FilesystemDevice(const QUrl& url, DeviceLister* lister,
 }
 
 void FilesystemDevice::Init() {
-  InitBackendDirectory(url_.toLocalFile(), first_time_);
+  QString path = url_.toLocalFile();
   model_->Init();
+  qLog(Debug) << "Root path " << path;
+  browse_root_ = browse_model_->setRootPath(path);
+  browse_model_->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot);
 }
 
 FilesystemDevice::~FilesystemDevice() {
@@ -79,4 +87,23 @@ FilesystemDevice::~FilesystemDevice() {
   watcher_->deleteLater();
   watcher_thread_->exit();
   watcher_thread_->wait();
+}
+
+void FilesystemDevice::ConnectAsync() {
+  QString path = url_.toLocalFile();
+  InitBackendDirectory(path, first_time_);
+  emit ConnectFinished(unique_id_, true);
+}
+
+QAbstractItemModel* FilesystemDevice::browse_model() const {
+  return browse_model_;
+}
+
+QModelIndex FilesystemDevice::browse_root() const {
+  return browse_root_;
+}
+
+void FilesystemDevice::set_browse_root(QModelIndex& root) {
+  qLog(Debug) << "New root " << root;
+  qLog(Debug) << browse_model_->filePath(root);
 }
