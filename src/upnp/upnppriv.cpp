@@ -110,7 +110,7 @@ class UpnpDescDoc : public UpnpDescBase
 
   bool Download(QString url)
   {
-    return Download(url.toAscii().data());
+    return Download(url.toLatin1().data());
   }
 
   void Print()
@@ -246,7 +246,7 @@ UpnpManagerPriv::UpnpManagerPriv() :
   }
 
   qLog(Debug) << "Web root is" << webdir_;
-  rc = UpnpSetWebServerRootDir((const char *)webdir_.toAscii().data());
+  rc = UpnpSetWebServerRootDir((const char *)webdir_.toLatin1().data());
   if (rc != UPNP_E_SUCCESS) {
     qLog(Error) << "UpnpSetWebSererRootDir failed with " << rc;
     return;
@@ -283,7 +283,7 @@ UpnpActionArgInfo *UpnpManagerPriv::AddActionArg(UpnpActionInfo *action,
   element.GetNodeStr(dirStr, "direction");
   bool dir = (dirStr.compare("in", Qt::CaseInsensitive) == 0);
   UpnpStateVarInfo *stateVar = service->FindStateVarByName(relatedVar);
-  return AddActionArg(action, nameStr.toAscii().data(), stateVar, dir);
+  return AddActionArg(action, nameStr.toLatin1().data(), stateVar, dir);
 }
 
 UpnpActionInfo *UpnpManagerPriv::AddAction(UpnpServiceInfo *info,
@@ -303,7 +303,7 @@ UpnpActionInfo *UpnpManagerPriv::AddAction(UpnpServiceInfo *service,
   QString name;
   elem.GetNodeStr(name, "name");
   //qLog(Debug) << "Action " << name;
-  UpnpActionInfo *action = AddAction(service, name.toAscii().data(), UpnpActionInfo::ID_Unknown /*todo*/);
+  UpnpActionInfo *action = AddAction(service, name.toLatin1().data(), UpnpActionInfo::ID_Unknown /*todo*/);
   return action;
 }
 
@@ -337,7 +337,7 @@ UpnpStateVarInfo *UpnpManagerPriv::AddStateVar(UpnpServiceInfo *service,
   else
     dataType = UpnpStateVarInfo::TYPE_STR;
 
-  return AddStateVar(service, nameStr.toAscii().data(),
+  return AddStateVar(service, nameStr.toLatin1().data(),
                      sendEventAttr, dataType);
 }
 
@@ -560,7 +560,7 @@ bool UpnpManagerPriv::CreateRenderer()
     desc.GetUrlPath();
   qLog(Debug) << "My URL: "<< url;
 
-  rc = UpnpRegisterRootDevice((const char *)url.toAscii().data(),
+  rc = UpnpRegisterRootDevice((const char *)url.toLatin1().data(),
                               RendererEventCallback, this, &rendererHandle);
   if (rc != UPNP_E_SUCCESS) {
     qLog(Error) << "Failed to register root device: " << rc;
@@ -706,7 +706,7 @@ int UpnpManagerPriv::ActionReqCallback(UpnpActionRequest *request)
        arg_itr++) {
     if (arg_itr->relStateVar) {
       doc.GetNodeStr(arg_itr->relStateVar->value,
-                 arg_itr->name.toAscii().data());
+                 arg_itr->name.toLatin1().data());
     }
   }
 
@@ -724,9 +724,9 @@ int UpnpManagerPriv::ActionReqCallback(UpnpActionRequest *request)
        arg_itr++) {
     if (arg_itr->relStateVar) {
       UpnpAddToActionResponse(&req, name,
-                              service->type.toAscii().data(),
-                              arg_itr->name.toAscii().data(),
-                              arg_itr->relStateVar->value.toAscii().data());
+                              service->type.toLatin1().data(),
+                              arg_itr->name.toLatin1().data(),
+                              arg_itr->relStateVar->value.toLatin1().data());
     }
   }
 

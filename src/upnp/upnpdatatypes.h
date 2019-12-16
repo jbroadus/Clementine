@@ -97,19 +97,19 @@ struct UpnpActionInfo {
   {
     QString strval;
     strval.number(val);
-    return SetOutArgVal(name, strval.toAscii().data());
+    return SetOutArgVal(name, strval.toLatin1().data());
   }
 
   bool SetOutArgVal(const char *name, unsigned int val)
   {
     QString strval;
     strval.number(val);
-    return SetOutArgVal(name, strval.toAscii().data());
+    return SetOutArgVal(name, strval.toLatin1().data());
   }
 
   bool SetOutArgVal(const char *name, QString &val)
   {
-    return SetOutArgVal(name, val.toAscii().data());
+    return SetOutArgVal(name, val.toLatin1().data());
   }
 
   bool SetOutArgVal(const char *name, const char *val)
