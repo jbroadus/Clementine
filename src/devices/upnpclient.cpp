@@ -78,14 +78,14 @@ bool UpnpClient::StartAsyncSearch()
 bool UpnpClient::SendAction(UpnpActionInfo *action, UpnpServiceInfo *service)
 {
   QByteArray url = service->control_url_.toEncoded();
-  QByteArray type = service->type_.toAscii();
-  QByteArray name = action->name_.toAscii();
+  QByteArray type = service->type_.toLatin1();
+  QByteArray name = action->name_.toLatin1();
   IXML_Document *req_doc = NULL;
   IXML_Document *res_doc = NULL;
   if (action->in_args_.size() > 0) {
     for (UpnpActionArgInfo& arg : action->in_args_) {
-      QByteArray arg_name = arg.name_.toAscii();
-      QByteArray arg_val = arg.rel_state_var_->value_.toAscii();
+      QByteArray arg_name = arg.name_.toLatin1();
+      QByteArray arg_val = arg.rel_state_var_->value_.toLatin1();
       qLog(Debug) << "Arg " << arg.name_ << "=" << arg.rel_state_var_->value_;
       UpnpAddToAction (&req_doc, name.data(), type.data(),
                        arg_name.data(),arg_val.data());

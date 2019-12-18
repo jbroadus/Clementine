@@ -79,7 +79,7 @@ bool UpnpActionInfo::UpdateFromResponse(UpnpDescDoc& doc)
 {
   QString val;
   for ( UpnpActionArgInfo& arg : out_args_ ) {
-    QByteArray name = arg.name_.toAscii();
+    QByteArray name = arg.name_.toLatin1();
     if (doc.GetNodeStr(val, name.data())) {
       arg.rel_state_var_->value_ = val;
     } else {
