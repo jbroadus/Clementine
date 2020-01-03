@@ -258,6 +258,7 @@ void PodcastService::UpdatePodcastText(QStandardItem* item,
 
   item->setFont(font);
   item->setText(title);
+  item->setToolTip(podcast.url().toString());
 }
 
 void PodcastService::UpdateEpisodeText(QStandardItem* item,
@@ -312,6 +313,7 @@ void PodcastService::UpdateEpisodeText(QStandardItem* item,
   item->setFont(font);
   item->setText(title);
   item->setIcon(icon);
+  item->setToolTip(episode.url().toString());
 }
 
 void PodcastService::UpdatePodcastText(QStandardItem* item,
