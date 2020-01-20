@@ -18,6 +18,7 @@
 #ifndef DIRECTORY_H
 #define DIRECTORY_H
 
+#include <QDir>
 #include <QList>
 #include <QString>
 #include <QMetaType>
@@ -43,8 +44,15 @@ struct Subdirectory {
   Subdirectory() : directory_id(-1), mtime(0) {}
 
   int directory_id;
-  QString path;
+  QString path_;
   uint mtime;
+
+  QString AbsPath(const Directory& dir) const {
+    if (QDir::isAbsolutePath(path_))
+      return path_;
+    else
+      return dir.path + QDir::separator() + path_;
+  }
 };
 Q_DECLARE_METATYPE(Subdirectory)
 

@@ -190,7 +190,7 @@ SubdirectoryList LibraryBackend::SubdirsInDirectory(int id, QSqlDatabase& db) {
   while (q.next()) {
     Subdirectory subdir;
     subdir.directory_id = id;
-    subdir.path = q.value(0).toString();
+    subdir.path_ = q.value(0).toString();
     subdir.mtime = q.value(1).toUInt();
     subdirs << subdir;
   }
@@ -324,25 +324,25 @@ void LibraryBackend::AddOrUpdateSubdirs(const SubdirectoryList& subdirs) {
     if (subdir.mtime == 0) {
       // Delete the subdirectory
       delete_query.bindValue(":id", subdir.directory_id);
-      delete_query.bindValue(":path", subdir.path);
+      delete_query.bindValue(":path", subdir.path_);
       delete_query.exec();
       db_->CheckErrors(delete_query);
     } else {
       // See if this subdirectory already exists in the database
       find_query.bindValue(":id", subdir.directory_id);
-      find_query.bindValue(":path", subdir.path);
+      find_query.bindValue(":path", subdir.path_);
       find_query.exec();
       if (db_->CheckErrors(find_query)) continue;
 
       if (find_query.next()) {
         update_query.bindValue(":mtime", subdir.mtime);
         update_query.bindValue(":id", subdir.directory_id);
-        update_query.bindValue(":path", subdir.path);
+        update_query.bindValue(":path", subdir.path_);
         update_query.exec();
         db_->CheckErrors(update_query);
       } else {
         add_query.bindValue(":id", subdir.directory_id);
-        add_query.bindValue(":path", subdir.path);
+        add_query.bindValue(":path", subdir.path_);
         add_query.bindValue(":mtime", subdir.mtime);
         add_query.exec();
         db_->CheckErrors(add_query);

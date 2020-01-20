@@ -134,7 +134,7 @@ LibraryWatcher::ScanTransaction::~ScanTransaction() {
   if (watcher_->monitor_) {
     // Watch the new subdirectories
     for (const Subdirectory& subdir : new_subdirs) {
-      watcher_->AddWatch(dir_, subdir.path);
+      watcher_->AddWatch(dir_, subdir.AbsPath(dir()));
     }
   }
 }
@@ -175,7 +175,7 @@ bool LibraryWatcher::ScanTransaction::HasSeenSubdir(const QString& path) {
     SetKnownSubdirs(watcher_->backend_->SubdirsInDirectory(dir_id()));
 
   for (const Subdirectory& subdir : known_subdirs_) {
-    if (subdir.path == path && subdir.mtime != 0) return true;
+    if (subdir.AbsPath(dir()) == path && subdir.mtime != 0) return true;
   }
   return false;
 }
@@ -187,7 +187,8 @@ SubdirectoryList LibraryWatcher::ScanTransaction::GetImmediateSubdirs(
 
   SubdirectoryList ret;
   for (const Subdirectory& subdir : known_subdirs_) {
-    if (subdir.path.left(subdir.path.lastIndexOf(QDir::separator())) == path &&
+    const QString& subPath = subdir.AbsPath(dir());
+    if (subPath.left(subPath.lastIndexOf(QDir::separator())) == path &&
         subdir.mtime != 0) {
       ret << subdir;
     }
@@ -249,9 +250,9 @@ void LibraryWatcher::AddDirectory(const Directory& dir,
     for (const Subdirectory& subdir : subdirs) {
       if (transaction.aborted()) return;
 
-      if (scan_on_startup_) ScanSubdirectory(subdir.path, subdir, &transaction);
+      if (scan_on_startup_) ScanSubdirectory(subdir.AbsPath(dir), subdir, &transaction);
 
-      if (monitor_) AddWatch(new_dir, subdir.path);
+      if (monitor_) AddWatch(new_dir, subdir.AbsPath(new_dir));
     }
   }
 
@@ -299,9 +300,10 @@ void LibraryWatcher::ScanSubdirectory(const QString& path,
   // If one has been removed, "rescan" it to get the deleted songs
   SubdirectoryList previous_subdirs = t->GetImmediateSubdirs(path);
   for (const Subdirectory& subdir : previous_subdirs) {
-    if (!QFile::exists(subdir.path) && subdir.path != path) {
+    QString subPath = subdir.AbsPath(t->dir());
+    if (!QFile::exists(subPath) && subPath != path) {
       t->AddToProgressMax(1);
-      ScanSubdirectory(subdir.path, subdir, t, true);
+      ScanSubdirectory(subPath, subdir, t, true);
     }
   }
 
@@ -323,7 +325,7 @@ void LibraryWatcher::ScanSubdirectory(const QString& path,
         // later we'll tell the backend about it and scan it.
         Subdirectory new_subdir;
         new_subdir.directory_id = -1;
-        new_subdir.path = child;
+        new_subdir.path_ = child;
         new_subdir.mtime = child_info.lastModified().toTime_t();
         my_new_subdirs << new_subdir;
       }
@@ -443,7 +445,7 @@ void LibraryWatcher::ScanSubdirectory(const QString& path,
   updated_subdir.directory_id = t->dir_id();
   updated_subdir.mtime =
       path_info.exists() ? path_info.lastModified().toTime_t() : 0;
-  updated_subdir.path = path;
+  updated_subdir.path_ = path;
 
   if (subdir.directory_id == -1)
     t->new_subdirs << updated_subdir;
@@ -461,7 +463,7 @@ void LibraryWatcher::ScanSubdirectory(const QString& path,
   t->AddToProgressMax(my_new_subdirs.count());
   for (const Subdirectory& my_new_subdir : my_new_subdirs) {
     if (t->aborted()) return;
-    ScanSubdirectory(my_new_subdir.path, my_new_subdir, t, true);
+    ScanSubdirectory(my_new_subdir.AbsPath(t->dir()), my_new_subdir, t, true);
   }
 }
 
@@ -655,7 +657,7 @@ void LibraryWatcher::AddWatch(const Directory& dir, const QString& path) {
 void LibraryWatcher::RemoveWatch(const Directory& dir,
                                  const Subdirectory& subdir) {
   for (const QString& subdir_path : subdir_mapping_.keys(dir)) {
-    if (subdir_path != subdir.path) continue;
+    if (subdir_path != subdir.AbsPath(dir)) continue;
     fs_watcher_->RemovePath(subdir_path);
     subdir_mapping_.remove(subdir_path);
     break;
@@ -728,7 +730,7 @@ void LibraryWatcher::RescanPathsNow() {
       Subdirectory subdir;
       subdir.directory_id = id;
       subdir.mtime = 0;
-      subdir.path = path;
+      subdir.path_ = path;
       ScanSubdirectory(path, subdir, &transaction);
     }
   }
@@ -839,7 +841,7 @@ void LibraryWatcher::ReloadSettings() {
     for (const Directory& dir : watched_dirs_.list_.values()) {
       SubdirectoryList subdirs = backend_->SubdirsInDirectory(dir.id);
       for (const Subdirectory& subdir : subdirs) {
-        AddWatch(dir, subdir.path);
+        AddWatch(dir, subdir.AbsPath(dir));
       }
     }
   }
@@ -876,7 +878,7 @@ void LibraryWatcher::PerformScan(bool incremental, bool ignore_mtimes) {
     for (const Subdirectory& subdir : subdirs) {
       if (transaction.aborted()) return;
 
-      ScanSubdirectory(subdir.path, subdir, &transaction);
+      ScanSubdirectory(subdir.AbsPath(dir), subdir, &transaction);
     }
   }
 

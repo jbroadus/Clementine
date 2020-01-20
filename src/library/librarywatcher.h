@@ -115,6 +115,7 @@ class LibraryWatcher : public QObject {
     void AddToProgressMax(int n);
 
     int dir_id() const { return dir_.id; }
+    const Directory& dir() const { return dir_; }
     bool is_incremental() const { return incremental_; }
     bool ignores_mtime() const { return ignores_mtime_; }
 
