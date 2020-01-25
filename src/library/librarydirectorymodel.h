@@ -36,6 +36,10 @@ class LibraryDirectoryModel : public QStandardItemModel {
                         QObject* parent = nullptr);
   ~LibraryDirectoryModel();
 
+  void SetMountInfo(std::shared_ptr<MountInfo> mount_info) {
+    mount_info_ = mount_info;
+  }
+
   // To be called by GUIs
   void AddDirectory(const QString& path);
   void RemoveDirectory(const QModelIndex& index);
@@ -52,6 +56,7 @@ class LibraryDirectoryModel : public QStandardItemModel {
 
   QIcon dir_icon_;
   std::shared_ptr<LibraryBackend> backend_;
+  std::shared_ptr<MountInfo> mount_info_;
   QList<std::shared_ptr<MusicStorage> > storage_;
 };
 

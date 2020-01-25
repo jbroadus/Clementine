@@ -34,6 +34,7 @@ class LibraryDirectoryModel;
 class LibraryWatcher;
 class TaskManager;
 class Thread;
+struct MountInfo;
 
 class Library : public QObject {
   Q_OBJECT
@@ -81,6 +82,7 @@ class Library : public QObject {
  private:
   Application* app_;
   std::shared_ptr<LibraryBackend> backend_;
+  std::shared_ptr<MountInfo> mount_info_;
   LibraryModel* model_;
   LibraryDirectoryModel* dir_model_;
 
