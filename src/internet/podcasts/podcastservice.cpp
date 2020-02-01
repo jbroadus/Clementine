@@ -213,13 +213,14 @@ void PodcastService::CancelDownload(const QModelIndexList& episode_indexes,
   app_->podcast_downloader()->cancelDownload(episodes);
 }
 
-void PodcastService::LazyPopulate(QStandardItem* parent) {
+bool PodcastService::LazyPopulate(QStandardItem* parent) {
   switch (parent->data(InternetModel::Role_Type).toInt()) {
     case InternetModel::Type_Service:
       PopulatePodcastList(model_->invisibleRootItem());
       model()->merged_model()->AddSubModel(parent->index(), proxy_);
       break;
   }
+  return true;
 }
 
 void PodcastService::PopulatePodcastList(QStandardItem* parent) {

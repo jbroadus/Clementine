@@ -152,7 +152,7 @@ QStandardItem* JamendoService::CreateRootItem() {
   return item;
 }
 
-void JamendoService::LazyPopulate(QStandardItem* item) {
+bool JamendoService::LazyPopulate(QStandardItem* item) {
   switch (item->data(InternetModel::Role_Type).toInt()) {
     case InternetModel::Type_Service: {
       if (total_song_count_ == 0 && !load_database_task_id_) {
@@ -164,6 +164,7 @@ void JamendoService::LazyPopulate(QStandardItem* item) {
     default:
       break;
   }
+  return true;
 }
 
 void JamendoService::UpdateTotalSongCount(int count) {

@@ -80,7 +80,7 @@ QStandardItem* IcecastService::CreateRootItem() {
   return root_;
 }
 
-void IcecastService::LazyPopulate(QStandardItem* item) {
+bool IcecastService::LazyPopulate(QStandardItem* item) {
   switch (item->data(InternetModel::Role_Type).toInt()) {
     case InternetModel::Type_Service:
       model_->Init();
@@ -95,6 +95,7 @@ void IcecastService::LazyPopulate(QStandardItem* item) {
     default:
       break;
   }
+  return true;
 }
 
 void IcecastService::LoadDirectory() {

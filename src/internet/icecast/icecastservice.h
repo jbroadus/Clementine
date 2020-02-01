@@ -52,7 +52,7 @@ class IcecastService : public InternetService {
   };
 
   QStandardItem* CreateRootItem();
-  void LazyPopulate(QStandardItem* item);
+  bool LazyPopulate(QStandardItem* item);
 
   void ShowContextMenu(const QPoint& global_pos);
 

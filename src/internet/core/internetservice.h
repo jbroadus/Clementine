@@ -58,7 +58,7 @@ class InternetService : public QObject {
   InternetModel* model() const { return model_; }
 
   virtual QStandardItem* CreateRootItem() = 0;
-  virtual void LazyPopulate(QStandardItem* parent) = 0;
+  virtual bool LazyPopulate(QStandardItem* parent) = 0;
   virtual bool has_initial_load_settings() const { return false; }
   virtual void InitialLoadSettings() {}
   virtual void ShowContextMenu(const QPoint& global_pos) {}

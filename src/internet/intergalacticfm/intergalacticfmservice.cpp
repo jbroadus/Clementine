@@ -83,7 +83,7 @@ QStandardItem* IntergalacticFMServiceBase::CreateRootItem() {
   return root_;
 }
 
-void IntergalacticFMServiceBase::LazyPopulate(QStandardItem* item) {
+bool IntergalacticFMServiceBase::LazyPopulate(QStandardItem* item) {
   switch (item->data(InternetModel::Role_Type).toInt()) {
     case InternetModel::Type_Service:
       RefreshStreams();
@@ -92,6 +92,7 @@ void IntergalacticFMServiceBase::LazyPopulate(QStandardItem* item) {
     default:
       break;
   }
+  return true;
 }
 
 void IntergalacticFMServiceBase::ShowContextMenu(const QPoint& global_pos) {

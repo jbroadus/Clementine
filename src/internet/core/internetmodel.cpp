@@ -227,7 +227,9 @@ int InternetModel::rowCount(const QModelIndex& parent) const {
     InternetService* service = ServiceForItem(item);
     if (service) {
       item->setData(false, Role_CanLazyLoad);
-      service->LazyPopulate(item);
+      if (!service->LazyPopulate(item))
+        // Re-enable lazy load after populate to avoid recursion.
+        item->setData(true, Role_CanLazyLoad);
     }
   }
 

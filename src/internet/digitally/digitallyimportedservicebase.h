@@ -47,7 +47,7 @@ class DigitallyImportedServiceBase : public InternetService {
   static const int kStreamsCacheDurationSecs;
 
   QStandardItem* CreateRootItem();
-  void LazyPopulate(QStandardItem* parent);
+  bool LazyPopulate(QStandardItem* parent);
   void ShowContextMenu(const QPoint& global_pos);
 
   void ReloadSettings();

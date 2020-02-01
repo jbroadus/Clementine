@@ -60,7 +60,7 @@ class SomaFMServiceBase : public InternetService {
   const QIcon& icon() const { return icon_; }
 
   QStandardItem* CreateRootItem();
-  void LazyPopulate(QStandardItem* item);
+  bool LazyPopulate(QStandardItem* item);
   void ShowContextMenu(const QPoint& global_pos);
 
   PlaylistItem::Options playlistitem_options() const;

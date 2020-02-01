@@ -161,7 +161,7 @@ QStandardItem* SubsonicService::CreateRootItem() {
   return root_;
 }
 
-void SubsonicService::LazyPopulate(QStandardItem* item) {
+bool SubsonicService::LazyPopulate(QStandardItem* item) {
   switch (item->data(InternetModel::Role_Type).toInt()) {
     case InternetModel::Type_Service:
       library_model_->Init();
@@ -176,6 +176,7 @@ void SubsonicService::LazyPopulate(QStandardItem* item) {
     default:
       break;
   }
+  return true;
 }
 
 void SubsonicService::ShowContextMenu(const QPoint& global_pos) {

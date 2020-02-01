@@ -82,10 +82,11 @@ QStandardItem* DigitallyImportedServiceBase::CreateRootItem() {
   return root_;
 }
 
-void DigitallyImportedServiceBase::LazyPopulate(QStandardItem* parent) {
+bool DigitallyImportedServiceBase::LazyPopulate(QStandardItem* parent) {
   if (parent == root_) {
     RefreshStreams();
   }
+  return true;
 }
 
 void DigitallyImportedServiceBase::RefreshStreams() {

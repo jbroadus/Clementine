@@ -46,7 +46,7 @@ class CloudFileService : public InternetService {
 
   // InternetService
   virtual QStandardItem* CreateRootItem();
-  virtual void LazyPopulate(QStandardItem* item);
+  virtual bool LazyPopulate(QStandardItem* item);
   virtual void ShowContextMenu(const QPoint& point);
 
   virtual bool has_credentials() const = 0;

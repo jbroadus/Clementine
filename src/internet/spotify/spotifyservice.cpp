@@ -131,7 +131,7 @@ QStandardItem* SpotifyService::CreateRootItem() {
   return root_;
 }
 
-void SpotifyService::LazyPopulate(QStandardItem* item) {
+bool SpotifyService::LazyPopulate(QStandardItem* item) {
   switch (item->data(InternetModel::Role_Type).toInt()) {
     case InternetModel::Type_Service:
       EnsureServerCreated();
@@ -164,7 +164,7 @@ void SpotifyService::LazyPopulate(QStandardItem* item) {
       break;
   }
 
-  return;
+  return true;
 }
 
 void SpotifyService::Login(const QString& username, const QString& password) {

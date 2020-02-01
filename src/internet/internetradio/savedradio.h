@@ -56,7 +56,7 @@ class SavedRadio : public InternetService {
   static const char* kSettingsGroup;
 
   QStandardItem* CreateRootItem();
-  void LazyPopulate(QStandardItem* item);
+  bool LazyPopulate(QStandardItem* item);
 
   void ShowContextMenu(const QPoint& global_pos);
 

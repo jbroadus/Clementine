@@ -130,7 +130,7 @@ QStandardItem* MagnatuneService::CreateRootItem() {
   return root_;
 }
 
-void MagnatuneService::LazyPopulate(QStandardItem* item) {
+bool MagnatuneService::LazyPopulate(QStandardItem* item) {
   switch (item->data(InternetModel::Role_Type).toInt()) {
     case InternetModel::Type_Service:
       library_model_->Init();
@@ -143,6 +143,7 @@ void MagnatuneService::LazyPopulate(QStandardItem* item) {
     default:
       break;
   }
+  return true;
 }
 
 void MagnatuneService::UpdateTotalSongCount(int count) {

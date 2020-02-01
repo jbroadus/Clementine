@@ -79,7 +79,7 @@ QStandardItem* CloudFileService::CreateRootItem() {
   return root_;
 }
 
-void CloudFileService::LazyPopulate(QStandardItem* item) {
+bool CloudFileService::LazyPopulate(QStandardItem* item) {
   switch (item->data(InternetModel::Role_Type).toInt()) {
     case InternetModel::Type_Service:
       if (!has_credentials()) {
@@ -94,6 +94,7 @@ void CloudFileService::LazyPopulate(QStandardItem* item) {
     default:
       break;
   }
+  return true;
 }
 
 void CloudFileService::ShowContextMenu(const QPoint& global_pos) {

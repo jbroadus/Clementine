@@ -58,7 +58,7 @@ class PodcastService : public InternetService {
   enum Role { Role_Podcast = InternetModel::RoleCount, Role_Episode };
 
   QStandardItem* CreateRootItem();
-  void LazyPopulate(QStandardItem* parent);
+  bool LazyPopulate(QStandardItem* parent);
   bool has_initial_load_settings() const { return true; }
   void ShowContextMenu(const QPoint& global_pos);
   void ReloadSettings();

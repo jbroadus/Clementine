@@ -83,7 +83,7 @@ QStandardItem* SomaFMServiceBase::CreateRootItem() {
   return root_;
 }
 
-void SomaFMServiceBase::LazyPopulate(QStandardItem* item) {
+bool SomaFMServiceBase::LazyPopulate(QStandardItem* item) {
   switch (item->data(InternetModel::Role_Type).toInt()) {
     case InternetModel::Type_Service:
       RefreshStreams();
@@ -92,6 +92,7 @@ void SomaFMServiceBase::LazyPopulate(QStandardItem* item) {
     default:
       break;
   }
+  return true;
 }
 
 void SomaFMServiceBase::ShowContextMenu(const QPoint& global_pos) {
