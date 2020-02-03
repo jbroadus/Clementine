@@ -188,6 +188,10 @@ set(SOURCES
   internet/somafm/somafmurlhandler.cpp
   internet/intergalacticfm/intergalacticfmservice.cpp
   internet/intergalacticfm/intergalacticfmurlhandler.cpp
+  internet/internetarchive/iacollection.cpp
+  internet/internetarchive/iamodel.cpp
+  internet/internetarchive/iaquery.cpp
+  internet/internetarchive/iaservice.cpp
   internet/subsonic/subsonicservice.cpp
   internet/subsonic/subsonicsettingspage.cpp
   internet/subsonic/subsonicurlhandler.cpp
@@ -495,6 +499,10 @@ set(HEADERS
   internet/somafm/somafmurlhandler.h
   internet/intergalacticfm/intergalacticfmservice.h
   internet/intergalacticfm/intergalacticfmurlhandler.h
+  internet/internetarchive/iacollection.h
+  internet/internetarchive/iamodel.h
+  internet/internetarchive/iaquery.h
+  internet/internetarchive/iaservice.h
   internet/subsonic/subsonicservice.h
   internet/subsonic/subsonicsettingspage.h
   internet/subsonic/subsonicurlhandler.h
