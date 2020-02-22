@@ -51,13 +51,14 @@ class GlobalShortcuts : public QWidget {
   QMap<QString, Shortcut> shortcuts() const { return shortcuts_; }
   bool IsGsdAvailable() const;
   bool IsMacAccessibilityEnabled() const;
+  bool IsRegistered() const { return registered_;}
 
  public slots:
   void ReloadSettings();
   void ShowMacAccessibilityDialog();
 
   void Unregister();
-  void Register();
+  bool Register();
 
 signals:
   void Play();
@@ -90,6 +91,7 @@ signals:
                          const QKeySequence& default_key = QKeySequence(0));
   Shortcut AddShortcut(const QString& id, const QString& name,
                        const QKeySequence& default_key);
+  bool TryRegister();
 
  private:
   GlobalShortcutBackend* gnome_backend_;
@@ -99,6 +101,7 @@ signals:
   QMap<QString, Shortcut> shortcuts_;
   QSettings settings_;
 
+  bool registered_;
   bool use_gnome_;
   bool have_kglobalaccel_;
 };

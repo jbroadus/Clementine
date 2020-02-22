@@ -25,6 +25,7 @@
 #include "kglobalaccelglobalshortcutbackend.h"
 #include "macglobalshortcutbackend.h"
 #include "qxtglobalshortcutbackend.h"
+#include "core/logging.h"
 
 #include "mac_startup.h"
 
@@ -42,6 +43,7 @@ GlobalShortcuts::GlobalShortcuts(QWidget* parent)
     : QWidget(parent),
       gnome_backend_(nullptr),
       system_backend_(nullptr),
+      registered_(false),
       use_gnome_(false),
       have_kglobalaccel_(
           KGlobalAccelShortcutBackend::IsKGlobalAccelAvailable()) {
@@ -161,15 +163,24 @@ void GlobalShortcuts::ReloadSettings() {
 }
 
 void GlobalShortcuts::Unregister() {
+  registered_ = false;
   if (gnome_backend_->is_active()) gnome_backend_->Unregister();
   if (kglobalaccel_backend_->is_active()) kglobalaccel_backend_->Unregister();
   if (system_backend_->is_active()) system_backend_->Unregister();
 }
 
-void GlobalShortcuts::Register() {
-  if (have_kglobalaccel_ && kglobalaccel_backend_->Register()) return;
-  if (use_gnome_ && gnome_backend_->Register()) return;
-  system_backend_->Register();
+bool GlobalShortcuts::Register() {
+  registered_ = TryRegister();
+  if (!registered_)
+    qLog(Warning) << "No shortcut backends could be registered.";
+  return (registered_);
+}
+
+bool GlobalShortcuts::TryRegister() {
+  if (have_kglobalaccel_ && kglobalaccel_backend_->Register()) return true;
+  if (use_gnome_ && gnome_backend_->Register()) return true;
+  if (system_backend_->Register()) return true;
+  return false;
 }
 
 bool GlobalShortcuts::IsMacAccessibilityEnabled() const {
