@@ -18,6 +18,7 @@
 #include "globalshortcutgrabber.h"
 #include "globalshortcutssettingspage.h"
 #include "ui_globalshortcutssettingspage.h"
+#include "core/application.h"
 #include "core/globalshortcuts.h"
 #include "core/logging.h"
 #include "core/utilities.h"
@@ -118,7 +119,10 @@ void GlobalShortcutsSettingsPage::Save() {
 
   settings_.setValue("use_gnome", ui_->gnome_checkbox->isChecked());
 
-  dialog()->global_shortcuts_manager()->ReloadSettings();
+  GlobalShortcuts* manager = dialog()->global_shortcuts_manager();
+  manager->ReloadSettings();
+  if (!manager->IsRegistered())
+    dialog()->app()->AddError(tr("No global shortcut backends could be registered."));
 }
 
 void GlobalShortcutsSettingsPage::CurrentItemChanged(QTreeWidgetItem* item) {
@@ -150,7 +154,8 @@ void GlobalShortcutsSettingsPage::ChangeClicked() {
   GlobalShortcuts* manager = dialog()->global_shortcuts_manager();
   manager->Unregister();
   QKeySequence key = grabber_->GetKey(shortcuts_[current_id_].s.action->text());
-  manager->Register();
+  if (!manager->Register())
+    dialog()->app()->AddError(tr("No global shortcut backends could be registered."));
 
   if (key.isEmpty()) return;
 
