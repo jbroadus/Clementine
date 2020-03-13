@@ -233,14 +233,16 @@ void GstEngine::ReloadSettings() {
 qint64 GstEngine::position_nanosec() const {
   if (!current_pipeline_) return 0;
 
-  const qint64 result = current_pipeline_->position() - beginning_nanosec_;
+  const qint64 result = current_pipeline_->position() -
+    playback_req_.beginning_nanosec_;
   return qint64(qMax(0ll, result));
 }
 
 qint64 GstEngine::length_nanosec() const {
   if (!current_pipeline_) return 0;
 
-  const qint64 result = end_nanosec_ - beginning_nanosec_;
+  const qint64 result = playback_req_.end_nanosec_ -
+    playback_req_.beginning_nanosec_;
 
   if (result > 0) {
     return result;
@@ -370,24 +372,24 @@ void GstEngine::UpdateScope(int chunk_length) {
 }
 
 void GstEngine::StartPreloading(const MediaPlaybackRequest& req,
-                                bool force_stop_at_end,
-                                qint64 beginning_nanosec, qint64 end_nanosec) {
+                                bool force_stop_at_end) {
   EnsureInitialised();
 
   // No crossfading, so we can just queue the new URL in the existing
   // pipeline and get gapless playback (hopefully)
-  if (current_pipeline_)
-    current_pipeline_->SetNextReq(req, beginning_nanosec,
-                                  force_stop_at_end ? end_nanosec : 0);
+  if (current_pipeline_) {
+    MediaPlaybackRequest next_req = req;
+    if (!force_stop_at_end)
+      next_req.end_nanosec_ = 0;
+    current_pipeline_->SetNextReq(next_req);
+  }
 }
 
 bool GstEngine::Load(const MediaPlaybackRequest& req,
-                     Engine::TrackChangeFlags change, bool force_stop_at_end,
-                     quint64 beginning_nanosec, qint64 end_nanosec) {
+                     Engine::TrackChangeFlags change, bool force_stop_at_end) {
   EnsureInitialised();
 
-  Engine::Base::Load(req, change, force_stop_at_end, beginning_nanosec,
-                     end_nanosec);
+  Engine::Base::Load(req, change, force_stop_at_end);
 
   bool crossfade =
       current_pipeline_ && ((crossfade_enabled_ && change & Engine::Manual) ||
@@ -406,8 +408,11 @@ bool GstEngine::Load(const MediaPlaybackRequest& req,
     return true;
   }
 
+  MediaPlaybackRequest new_req = req;
+  if (!force_stop_at_end)
+    new_req.end_nanosec_ = 0;
   shared_ptr<GstEnginePipeline> pipeline =
-      CreatePipeline(req, force_stop_at_end ? end_nanosec : 0);
+    CreatePipeline(new_req);
   if (!pipeline) return false;
 
   if (crossfade) StartFadeout();
@@ -489,7 +494,7 @@ void GstEngine::PlayDone(QFuture<GstStateChangeReturn> future,
       // Keep original request intact so it can be used for notification.
       MediaPlaybackRequest new_req = playback_req_;
       new_req.url_ = redirect_url;
-      current_pipeline_ = CreatePipeline(new_req, end_nanosec_);
+      current_pipeline_ = CreatePipeline(new_req);
       Play(offset_nanosec);
       return;
     }
@@ -504,7 +509,7 @@ void GstEngine::PlayDone(QFuture<GstStateChangeReturn> future,
   StartTimers();
 
   // initial offset
-  if (offset_nanosec != 0 || beginning_nanosec_ != 0) {
+  if (offset_nanosec != 0 || playback_req_.beginning_nanosec_ != 0) {
     Seek(offset_nanosec);
   }
 
@@ -518,7 +523,6 @@ void GstEngine::Stop(bool stop_after) {
 
   playback_req_ =
       MediaPlaybackRequest();  // To ensure we return Empty from state()
-  beginning_nanosec_ = end_nanosec_ = 0;
 
   // Check if we started a fade out. If it isn't finished yet and the user
   // pressed stop, we cancel the fader and just stop the playback.
@@ -610,7 +614,7 @@ void GstEngine::Unpause() {
 void GstEngine::Seek(quint64 offset_nanosec) {
   if (!current_pipeline_) return;
 
-  seek_pos_ = beginning_nanosec_ + offset_nanosec;
+  seek_pos_ = playback_req_.beginning_nanosec_ + offset_nanosec;
   waiting_to_seek_ = true;
 
   if (!seek_timer_->isActive()) {
@@ -701,7 +705,7 @@ void GstEngine::HandlePipelineError(int pipeline_id, const QString& message,
 
   // try to reload the URL in case of a drop of the connection
   if (domain == GST_RESOURCE_ERROR && error_code == GST_RESOURCE_ERROR_SEEK) {
-    if (Load(playback_req_, 0, false, 0, 0)) {
+    if (Load(playback_req_, 0, false)) {
       current_pipeline_->SetState(GST_STATE_PLAYING);
 
       return;
@@ -828,7 +832,7 @@ shared_ptr<GstEnginePipeline> GstEngine::CreatePipeline() {
 }
 
 shared_ptr<GstEnginePipeline> GstEngine::CreatePipeline(
-    const MediaPlaybackRequest& req, qint64 end_nanosec) {
+    const MediaPlaybackRequest& req) {
   shared_ptr<GstEnginePipeline> ret = CreatePipeline();
 
   if (req.url_.scheme() == "hypnotoad") {
@@ -841,7 +845,7 @@ shared_ptr<GstEnginePipeline> GstEngine::CreatePipeline(
     return ret;
   }
 
-  if (!ret->InitFromReq(req, end_nanosec)) ret.reset();
+  if (!ret->InitFromReq(req)) ret.reset();
 
   return ret;
 }
@@ -885,12 +889,12 @@ void GstEngine::BackgroundStreamPlayDone(QFuture<GstStateChangeReturn> future,
 }
 
 int GstEngine::AddBackgroundStream(const QUrl& url) {
-  shared_ptr<GstEnginePipeline> pipeline = CreatePipeline(url, 0);
+  shared_ptr<GstEnginePipeline> pipeline = CreatePipeline(url);
   if (!pipeline) {
     return -1;
   }
   pipeline->SetVolume(30);
-  pipeline->SetNextReq(url, 0, 0);
+  pipeline->SetNextReq(url);
   return AddBackgroundStream(pipeline);
 }
 
@@ -900,7 +904,7 @@ void GstEngine::StopBackgroundStream(int id) {
 
 void GstEngine::BackgroundStreamFinished() {
   GstEnginePipeline* pipeline = qobject_cast<GstEnginePipeline*>(sender());
-  pipeline->SetNextReq(pipeline->url(), 0, 0);
+  pipeline->SetNextReq(pipeline->url());
 }
 
 void GstEngine::SetBackgroundStreamVolume(int id, int volume) {

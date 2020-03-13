@@ -95,11 +95,9 @@ class GstEngine : public Engine::Base, public BufferConsumer {
   void ConsumeBuffer(GstBuffer* buffer, int pipeline_id);
 
  public slots:
-  void StartPreloading(const MediaPlaybackRequest& req, bool force_stop_at_end,
-                       qint64 beginning_nanosec, qint64 end_nanosec);
+  void StartPreloading(const MediaPlaybackRequest& req, bool force_stop_at_end);
   bool Load(const MediaPlaybackRequest&, Engine::TrackChangeFlags change,
-            bool force_stop_at_end, quint64 beginning_nanosec,
-            qint64 end_nanosec);
+            bool force_stop_at_end);
   bool Play(quint64 offset_nanosec);
   void Stop(bool stop_after = false);
   void Pause();
@@ -163,7 +161,7 @@ class GstEngine : public Engine::Base, public BufferConsumer {
 
   std::shared_ptr<GstEnginePipeline> CreatePipeline();
   std::shared_ptr<GstEnginePipeline> CreatePipeline(
-      const MediaPlaybackRequest& req, qint64 end_nanosec);
+      const MediaPlaybackRequest& req);
 
   void UpdateScope(int chunk_length);
 

@@ -59,7 +59,7 @@ class GstEnginePipeline : public QObject {
   void set_sample_rate(int rate);
 
   // Creates the pipeline, returns false on error
-  bool InitFromReq(const MediaPlaybackRequest& req, qint64 end_nanosec);
+  bool InitFromReq(const MediaPlaybackRequest& req);
   bool InitFromString(const QString& pipeline);
 
   // BufferConsumers get fed audio data.  Thread-safe.
@@ -81,8 +81,7 @@ class GstEnginePipeline : public QObject {
 
   // If this is set then it will be loaded automatically when playback finishes
   // for gapless playback
-  void SetNextReq(const MediaPlaybackRequest& req, qint64 beginning_nanosec,
-                  qint64 end_nanosec);
+  void SetNextReq(const MediaPlaybackRequest& req);
   bool has_next_valid_url() const { return next_.url_.isValid(); }
 
   // Get information about the music playback
@@ -229,16 +228,6 @@ signals:
   // when the current track is close to finishing.
   MediaPlaybackRequest current_;
   MediaPlaybackRequest next_;
-
-  // If this is > 0 then the pipeline will be forced to stop when playback goes
-  // past this position.
-  qint64 end_offset_nanosec_;
-
-  // We store the beginning and end for the preloading song too, so we can just
-  // carry on without reloading the file if the sections carry on from each
-  // other.
-  qint64 next_beginning_offset_nanosec_;
-  qint64 next_end_offset_nanosec_;
 
   // Set temporarily when moving to the next contiguous section in a multi-part
   // file.

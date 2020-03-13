@@ -23,11 +23,20 @@
 
 class MediaPlaybackRequest {
  public:
-  MediaPlaybackRequest(const QUrl& url) : url_(url) {}
-  MediaPlaybackRequest() {}
+  MediaPlaybackRequest(const QUrl& url, qint64 beginning_nanosec = 0,
+                       qint64 end_nanosec = 0)
+    : url_(url),
+      beginning_nanosec_(beginning_nanosec),
+      end_nanosec_(end_nanosec) {}
+
+  MediaPlaybackRequest()
+    : beginning_nanosec_(0),
+      end_nanosec_(0) {}
 
   QUrl url_;
 
+  qint64 beginning_nanosec_;
+  qint64 end_nanosec_;
   typedef QMap<QByteArray, QByteArray> HeaderList;
   HeaderList headers_;
 };

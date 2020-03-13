@@ -30,8 +30,6 @@ const char* Engine::Base::kSettingsGroup = "Player";
 
 Engine::Base::Base()
     : volume_(50),
-      beginning_nanosec_(0),
-      end_nanosec_(0),
       scope_(kScopeSize),
       fadeout_enabled_(true),
       fadeout_duration_nanosec_(2 * kNsecPerSec),  // 2s
@@ -44,13 +42,10 @@ Engine::Base::Base()
 Engine::Base::~Base() {}
 
 bool Engine::Base::Load(const MediaPlaybackRequest& req, TrackChangeFlags,
-                        bool force_stop_at_end, quint64 beginning_nanosec,
-                        qint64 end_nanosec) {
+                        bool force_stop_at_end) {
   Q_UNUSED(force_stop_at_end);
 
   playback_req_ = req;
-  beginning_nanosec_ = beginning_nanosec;
-  end_nanosec_ = end_nanosec;
 
   about_to_end_emitted_ = false;
   return true;
@@ -93,9 +88,8 @@ void Engine::Base::EmitAboutToEnd() {
 int Engine::Base::AddBackgroundStream(const QUrl& url) { return -1; }
 
 bool Engine::Base::Play(const MediaPlaybackRequest& req, TrackChangeFlags c,
-                        bool force_stop_at_end, quint64 beginning_nanosec,
-                        qint64 end_nanosec) {
-  if (!Load(req, c, force_stop_at_end, beginning_nanosec, end_nanosec))
+                        bool force_stop_at_end) {
+  if (!Load(req, c, force_stop_at_end))
     return false;
 
   return Play(0);

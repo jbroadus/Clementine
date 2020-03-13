@@ -46,8 +46,7 @@ class Base : public QObject {
 
   virtual bool Init() = 0;
 
-  virtual void StartPreloading(const MediaPlaybackRequest&, bool, qint64,
-                               qint64) {}
+  virtual void StartPreloading(const MediaPlaybackRequest&, bool) {}
   virtual bool Play(quint64 offset_nanosec) = 0;
   virtual void Stop(bool stop_after = false) = 0;
   virtual void Pause() = 0;
@@ -65,14 +64,13 @@ class Base : public QObject {
   // Subclasses should respect given markers (beginning and end) which are
   // in milliseconds.
   virtual bool Load(const MediaPlaybackRequest& req, TrackChangeFlags change,
-                    bool force_stop_at_end, quint64 beginning_nanosec,
-                    qint64 end_nanosec);
+                    bool force_stop_at_end);
   // Sets new values for the beginning and end markers of the currently playing
   // song.
   // This doesn't change the state of engine or the stream's current position.
   virtual void RefreshMarkers(quint64 beginning_nanosec, qint64 end_nanosec) {
-    beginning_nanosec_ = beginning_nanosec;
-    end_nanosec_ = end_nanosec;
+    playback_req_.beginning_nanosec_ = beginning_nanosec;
+    playback_req_.end_nanosec_ = end_nanosec;
   }
 
   // Plays a media stream represented with the URL 'u' from the given
@@ -81,8 +79,7 @@ class Base : public QObject {
   // should be passed in nanoseconds. 'end' can be negative, indicating that the
   // real length of 'u' stream is unknown.
   bool Play(const MediaPlaybackRequest& req, TrackChangeFlags c,
-            bool force_stop_at_end, quint64 beginning_nanosec,
-            qint64 end_nanosec);
+            bool force_stop_at_end);
 
   void SetVolume(uint value);
 
@@ -140,8 +137,6 @@ signals:
 
  protected:
   uint volume_;
-  quint64 beginning_nanosec_;
-  qint64 end_nanosec_;
   MediaPlaybackRequest playback_req_;
   Scope scope_;
 

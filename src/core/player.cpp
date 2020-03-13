@@ -146,12 +146,12 @@ void Player::HandleLoadResult(const UrlHandler::LoadResult& result) {
         item->SetTemporaryMetadata(song);
         app_->playlist_manager()->active()->InformOfCurrentSongChange();
       }
-      MediaPlaybackRequest req(result.media_url_);
+      MediaPlaybackRequest req(result.media_url_,
+                               item->Metadata().beginning_nanosec(),
+                               item->Metadata().end_nanosec());
       if (!result.auth_header_.isEmpty())
         req.headers_["Authorization"] = result.auth_header_;
-      engine_->Play(req, stream_change_type_, item->Metadata().has_cue(),
-                    item->Metadata().beginning_nanosec(),
-                    item->Metadata().end_nanosec());
+      engine_->Play(req, stream_change_type_, item->Metadata().has_cue());
 
       current_item_ = item;
       loading_async_ = QUrl();
@@ -423,10 +423,10 @@ void Player::PlayAt(int index, Engine::TrackChangeFlags change,
     HandleLoadResult(url_handlers_[url.scheme()]->StartLoading(url));
   } else {
     loading_async_ = QUrl();
-    MediaPlaybackRequest req(current_item_->Url());
-    engine_->Play(req, change, current_item_->Metadata().has_cue(),
-                  current_item_->Metadata().beginning_nanosec(),
-                  current_item_->Metadata().end_nanosec());
+    MediaPlaybackRequest req(current_item_->Url(),
+                             current_item_->Metadata().beginning_nanosec(),
+                             current_item_->Metadata().end_nanosec());
+    engine_->Play(req, change, current_item_->Metadata().has_cue());
 
 #ifdef HAVE_LIBLASTFM
     if (lastfm_->IsScrobblingEnabled())
@@ -607,10 +607,9 @@ void Player::TrackAboutToEnd() {
         break;
     }
   }
-  MediaPlaybackRequest req(url);
-  engine_->StartPreloading(req, next_item->Metadata().has_cue(),
-                           next_item->Metadata().beginning_nanosec(),
+  MediaPlaybackRequest req(url, next_item->Metadata().beginning_nanosec(),
                            next_item->Metadata().end_nanosec());
+  engine_->StartPreloading(req, next_item->Metadata().has_cue());
 }
 
 void Player::IntroPointReached() { NextInternal(Engine::Intro); }

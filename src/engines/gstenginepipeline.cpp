@@ -73,9 +73,6 @@ GstEnginePipeline::GstEnginePipeline(GstEngine* engine)
       buffering_(false),
       mono_playback_(false),
       sample_rate_(GstEngine::kAutoSampleRate),
-      end_offset_nanosec_(-1),
-      next_beginning_offset_nanosec_(-1),
-      next_end_offset_nanosec_(-1),
       ignore_next_seek_(false),
       ignore_tags_(false),
       pipeline_is_initialised_(false),
@@ -510,8 +507,7 @@ bool GstEnginePipeline::InitFromString(const QString& pipeline) {
   return gst_element_link(new_bin, audiobin_);
 }
 
-bool GstEnginePipeline::InitFromReq(const MediaPlaybackRequest& req,
-                                    qint64 end_nanosec) {
+bool GstEnginePipeline::InitFromReq(const MediaPlaybackRequest& req) {
   pipeline_ = gst_pipeline_new("pipeline");
 
   current_ = req;
@@ -525,7 +521,6 @@ bool GstEnginePipeline::InitFromReq(const MediaPlaybackRequest& req,
     current_.url_ = QUrl(QString("cdda://%1").arg(path.takeLast()));
     source_device_ = path.join("/");
   }
-  end_offset_nanosec_ = end_nanosec;
 
   // Decode bin
   if (!ReplaceDecodeBin(current_.url_)) return false;
@@ -910,22 +905,20 @@ GstPadProbeReturn GstEnginePipeline::HandoffCallback(GstPad*,
 
   // Calculate the end time of this buffer so we can stop playback if it's
   // after the end time of this song.
-  if (instance->end_offset_nanosec_ > 0) {
+  if (instance->current_.end_nanosec_ > 0) {
     quint64 start_time = GST_BUFFER_TIMESTAMP(buf) - instance->segment_start_;
     quint64 duration = GST_BUFFER_DURATION(buf);
     quint64 end_time = start_time + duration;
 
-    if (end_time > instance->end_offset_nanosec_) {
+    if (end_time > instance->current_.end_nanosec_) {
       if (instance->has_next_valid_url()) {
         if (instance->next_.url_ == instance->current_.url_ &&
-            instance->next_beginning_offset_nanosec_ ==
-                instance->end_offset_nanosec_) {
+            instance->next_.beginning_nanosec_ ==
+                instance->current_.end_nanosec_) {
           // The "next" song is actually the next segment of this file - so
           // cheat and keep on playing, but just tell the Engine we've moved on.
-          instance->end_offset_nanosec_ = instance->next_end_offset_nanosec_;
+          instance->current_ = instance->next_;
           instance->next_ = MediaPlaybackRequest();
-          instance->next_beginning_offset_nanosec_ = 0;
-          instance->next_end_offset_nanosec_ = 0;
 
           // GstEngine will try to seek to the start of the new section, but
           // we're already there so ignore it.
@@ -1067,10 +1060,7 @@ void GstEnginePipeline::TransitionToNext() {
   MaybeLinkDecodeToAudio();
 
   current_ = next_;
-  end_offset_nanosec_ = next_end_offset_nanosec_;
   next_ = MediaPlaybackRequest();
-  next_beginning_offset_nanosec_ = 0;
-  next_end_offset_nanosec_ = 0;
 
   // This function gets called when the source has been drained, even if the
   // song hasn't finished playing yet.  We'll get a new stream when it really
@@ -1292,10 +1282,6 @@ void GstEnginePipeline::RemoveAllBufferConsumers() {
   buffer_consumers_.clear();
 }
 
-void GstEnginePipeline::SetNextReq(const MediaPlaybackRequest& req,
-                                   qint64 beginning_nanosec,
-                                   qint64 end_nanosec) {
+void GstEnginePipeline::SetNextReq(const MediaPlaybackRequest& req) {
   next_ = req;
-  next_beginning_offset_nanosec_ = beginning_nanosec;
-  next_end_offset_nanosec_ = end_nanosec;
 }
