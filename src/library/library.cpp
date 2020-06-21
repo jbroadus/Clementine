@@ -44,7 +44,7 @@ Library::Library(Application* app, QObject* parent)
       watcher_thread_(nullptr),
       save_statistics_in_files_(false),
       save_ratings_in_files_(false) {
-  backend_.reset(new LibraryBackend);
+  backend_.reset(new LibraryBackend(Song::Backend_Library));
   backend()->moveToThread(app->database()->thread());
 
   backend_->Init(app->database(), kSongsTable, kDirsTable, kSubdirsTable,

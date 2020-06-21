@@ -130,7 +130,8 @@ class LibraryBackend : public LibraryBackendInterface {
  public:
   static const char* kSettingsGroup;
 
-  Q_INVOKABLE LibraryBackend(QObject* parent = nullptr);
+  Q_INVOKABLE LibraryBackend(Song::BackendType type = Song::Backend_Unknown,
+                             QObject* parent = nullptr);
   void Init(Database* db, const QString& songs_table, const QString& fts_table);
   void Init(Database* db, const QString& songs_table, const QString& dirs_table,
             const QString& subdirs_table, const QString& fts_table);
@@ -262,6 +263,7 @@ class LibraryBackend : public LibraryBackendInterface {
 
  private:
   Database* db_;
+  Song::BackendType type_;
   QString songs_table_;
   QString dirs_table_;
   QString subdirs_table_;

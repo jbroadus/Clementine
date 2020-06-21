@@ -42,8 +42,10 @@ const char* LibraryBackend::kNewScoreSql =
     "skipcount + 1)"
     " end";
 
-LibraryBackend::LibraryBackend(QObject* parent)
+LibraryBackend::LibraryBackend(Song::BackendType type,
+                               QObject* parent)
     : LibraryBackendInterface(parent),
+      type_(type),
       save_statistics_in_file_(false),
       save_ratings_in_file_(false) {}
 
@@ -288,7 +290,7 @@ SongList LibraryBackend::FindSongsInDirectory(int id) {
 
   SongList ret;
   while (q.next()) {
-    Song song;
+    Song song(type_);
     song.InitFromQuery(q, true);
     ret << song;
   }
@@ -612,7 +614,7 @@ SongList LibraryBackend::ExecLibraryQuery(LibraryQuery* query) {
 
   SongList ret;
   while (query->Next()) {
-    Song song;
+    Song song(type_);
     song.InitFromQuery(*query, true);
     ret << song;
   }
@@ -676,7 +678,7 @@ SongList LibraryBackend::GetSongsByForeignId(const QStringList& ids,
 
 Song LibraryBackend::GetSongById(int id, QSqlDatabase& db) {
   SongList list = GetSongsById(QStringList() << QString::number(id), db);
-  if (list.isEmpty()) return Song();
+  if (list.isEmpty()) return Song(type_);
   return list.first();
 }
 
@@ -694,7 +696,7 @@ SongList LibraryBackend::GetSongsById(const QStringList& ids,
 
   SongList ret;
   while (q.next()) {
-    Song song;
+    Song song(type_);
     song.InitFromQuery(q, true);
     ret << song;
   }
@@ -707,7 +709,7 @@ Song LibraryBackend::GetSongByUrl(const QUrl& url, qint64 beginning) {
   query.AddWhere("filename", url.toEncoded());
   query.AddWhere("beginning", beginning);
 
-  Song song;
+  Song song(type_);
   if (ExecQuery(&query) && query.Next()) {
     song.InitFromQuery(query, true);
   }
@@ -722,7 +724,7 @@ SongList LibraryBackend::GetSongsByUrl(const QUrl& url) {
   SongList songlist;
   if (ExecQuery(&query)) {
     while (query.Next()) {
-      Song song;
+      Song song(type_);
       song.InitFromQuery(query, true);
 
       songlist << song;
@@ -748,7 +750,7 @@ SongList LibraryBackend::GetCompilationSongs(const QString& album,
 
   SongList ret;
   while (query.Next()) {
-    Song song;
+    Song song(type_);
     song.InitFromQuery(query, true);
     ret << song;
   }
@@ -851,7 +853,7 @@ void LibraryBackend::UpdateCompilations(const QSqlDatabase& db,
   find_song.bindValue(":filename", url.toEncoded());
   find_song.exec();
   while (find_song.next()) {
-    Song song;
+    Song song(type_);
     song.InitFromQuery(find_song, true);
     deleted_songs << song;
     song.set_sampler(sampler);
@@ -982,7 +984,7 @@ void LibraryBackend::UpdateManualAlbumArt(const QString& artist,
 
   SongList deleted_songs;
   while (query.Next()) {
-    Song song;
+    Song song(type_);
     song.InitFromQuery(query, true);
     deleted_songs << song;
   }
@@ -1015,7 +1017,7 @@ void LibraryBackend::UpdateManualAlbumArt(const QString& artist,
 
   SongList added_songs;
   while (query.Next()) {
-    Song song;
+    Song song(type_);
     song.InitFromQuery(query, true);
     added_songs << song;
   }
@@ -1042,7 +1044,7 @@ void LibraryBackend::ForceCompilation(const QString& album,
     if (!ExecQuery(&query)) return;
 
     while (query.Next()) {
-      Song song;
+      Song song(type_);
       song.InitFromQuery(query, true);
       deleted_songs << song;
     }
@@ -1072,7 +1074,7 @@ void LibraryBackend::ForceCompilation(const QString& album,
     if (!ExecQuery(&query)) return;
 
     while (query.Next()) {
-      Song song;
+      Song song(type_);
       song.InitFromQuery(query, true);
       added_songs << song;
     }
@@ -1104,7 +1106,7 @@ SongList LibraryBackend::FindSongs(const smart_playlists::Search& search) {
 
   // Read the results
   while (query.next()) {
-    Song song;
+    Song song(type_);
     song.InitFromQuery(query, true);
     ret << song;
   }

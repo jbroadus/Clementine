@@ -22,7 +22,7 @@
 #include "core/tagreaderclient.h"
 
 LibraryPlaylistItem::LibraryPlaylistItem(const QString& type)
-    : DbPlaylistItem(type) {}
+    : DbPlaylistItem(type, Song(Song::Backend_Library)) {}
 
 LibraryPlaylistItem::LibraryPlaylistItem(const Song& song)
     : DbPlaylistItem("Library", song) {}
