@@ -891,6 +891,25 @@ if(HAVE_SPOTIFY)
   )
 endif(HAVE_SPOTIFY)
 
+optional_source(HAVE_LIBUPNP
+  SOURCES
+    upnp/upnpevents.cpp
+    upnp/upnpmanager.cpp
+    upnp/upnproot.cpp
+    upnp/upnpserver.cpp
+    upnp/upnpservice.cpp
+    upnp/scpdparser.cpp
+    upnp/scpdbuilder.cpp
+    upnp/services/avtransport.cpp
+  HEADERS
+    upnp/upnpevents.h
+    upnp/upnpmanager.h
+    upnp/upnproot.h
+    upnp/upnpserver.h
+  RESOURCES
+    ../data/upnp.qrc
+)
+
 # Platform specific - OS X
 optional_source(APPLE
   INCLUDE_DIRECTORIES

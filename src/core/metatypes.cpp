@@ -50,6 +50,10 @@
 #include "dbus/metatypes.h"
 #endif
 
+#ifdef HAVE_LIBUPNP
+#include "upnp/upnpevents.h"
+#endif
+
 class GstEnginePipeline;
 class QNetworkReply;
 
@@ -127,5 +131,9 @@ void RegisterMetaTypes() {
 #ifdef HAVE_X11
   qDBusRegisterMetaType<QImage>();
 #endif
+#endif
+
+#ifdef HAVE_LIBUPNP
+  qRegisterMetaType<Clementine::UpnpActionRequest>();
 #endif
 }

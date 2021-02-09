@@ -393,6 +393,9 @@ int main(int argc, char* argv[]) {
 #ifdef HAVE_TRANSLATIONS
   Q_INIT_RESOURCE(translations);
 #endif
+#ifdef HAVE_LIBUPNP
+  Q_INIT_RESOURCE(upnp);
+#endif
 
   // Has the user forced a different language?
   QString override_language = options.language();

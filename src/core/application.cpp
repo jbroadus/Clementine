@@ -66,6 +66,10 @@
 #include "moodbar/moodbarloader.h"
 #endif
 
+#ifdef HAVE_LIBUPNP
+#include "upnp/upnpmanager.h"
+#endif
+
 bool Application::kIsPortable = false;
 const char* Application::kLegacyPortableDataDir = "data";
 const char* Application::kDefaultPortableDataDir = "clementine-data";
@@ -169,6 +173,13 @@ class ApplicationImpl {
 #else
           return nullptr;
 #endif
+        }),
+        upnp_manager_([=]() {
+#ifdef HAVE_LIBUPNP
+          return new UpnpManager(app);
+#else
+          return null;
+#endif
         }) {
   }
 
@@ -199,6 +210,7 @@ class ApplicationImpl {
   Lazy<NetworkRemote> network_remote_;
   Lazy<NetworkRemoteHelper> network_remote_helper_;
   Lazy<Scrobbler> scrobbler_;
+  Lazy<UpnpManager> upnp_manager_;
 };
 
 Application::Application(QObject* parent)
@@ -266,6 +278,10 @@ void Application::Starting() {
   if (splash_) {
     splash_.reset();
   }
+
+#ifdef HAVE_LIBUPNP
+  upnp_manager()->Start();
+#endif
 }
 
 QString Application::language_without_region() const {
@@ -378,6 +394,10 @@ TagReaderClient* Application::tag_reader_client() const {
 
 TaskManager* Application::task_manager() const {
   return p_->task_manager_.get();
+}
+
+UpnpManager* Application::upnp_manager() const {
+  return p_->upnp_manager_.get();
 }
 
 void Application::DirtySettings() { p_->settings_timer_.start(); }
