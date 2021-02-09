@@ -22,6 +22,7 @@
 
 #include "application.h"
 
+#include <QPluginLoader>
 #include <QSettings>
 #include <QTimer>
 
@@ -64,6 +65,11 @@
 #ifdef HAVE_MOODBAR
 #include "moodbar/moodbarcontroller.h"
 #include "moodbar/moodbarloader.h"
+#endif
+
+#include "interface/upnpmanager.h"
+#ifdef HAVE_LIBUPNP
+#include "interface/upnpplugin.h"
 #endif
 
 bool Application::kIsPortable = false;
@@ -169,6 +175,25 @@ class ApplicationImpl {
 #else
           return nullptr;
 #endif
+        }),
+        upnp_manager_([=]() -> IClementine::UpnpManager* {
+#ifdef HAVE_LIBUPNP
+          QPluginLoader loader("libclementine-upnp");
+          QObject *inst = loader.instance();
+          if (inst == nullptr) {
+            qLog(Error) << "Could not load upnp plugin.";
+            return nullptr;
+          }
+          IClementine::UpnpPlugin* plugin =
+            qobject_cast<IClementine::UpnpPlugin*>(inst);
+          if (plugin == nullptr) {
+            qLog(Error) << "Upnp plugin error.";
+            return nullptr;
+          }
+          return plugin->MakeUpnpManager(app);
+#else
+          return nullptr;
+#endif
         }) {
   }
 
@@ -199,6 +224,7 @@ class ApplicationImpl {
   Lazy<NetworkRemote> network_remote_;
   Lazy<NetworkRemoteHelper> network_remote_helper_;
   Lazy<Scrobbler> scrobbler_;
+  Lazy<IClementine::UpnpManager> upnp_manager_;
 };
 
 Application::Application(QObject* parent)
@@ -266,6 +292,13 @@ void Application::Starting() {
   if (splash_) {
     splash_.reset();
   }
+
+#ifdef HAVE_LIBUPNP
+  IClementine::UpnpManager* mgr = upnp_manager();
+  if (mgr != nullptr) {
+    mgr->Start();
+  }
+#endif
 }
 
 QString Application::language_without_region() const {
@@ -378,6 +411,10 @@ TagReaderClient* Application::tag_reader_client() const {
 
 TaskManager* Application::task_manager() const {
   return p_->task_manager_.get();
+}
+
+IClementine::UpnpManager* Application::upnp_manager() const {
+  return p_->upnp_manager_.get();
 }
 
 void Application::DirtySettings() { p_->settings_timer_.start(); }

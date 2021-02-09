@@ -326,7 +326,7 @@ optional_component(LIBPULSE ON "Pulse audio integration"
   DEPENDS "libpulse" LIBPULSE_FOUND
 )
 
-optional_component(LIBUPNP ON "Upnp integration"
+optional_component(LIBUPNP ON "Plugins: Upnp integration"
   DEPENDS "libupnp" LIBUPNP_FOUND
 )
 
@@ -461,6 +461,9 @@ add_subdirectory(ext/libclementine-remote)
 if(HAVE_SPOTIFY)
   add_subdirectory(ext/libclementine-spotifyblob)
 endif(HAVE_SPOTIFY)
+if(HAVE_LIBUPNP)
+  add_subdirectory(plugins/upnp)
+endif(HAVE_LIBUPNP)
 
 option(WITH_DEBIAN OFF)
 if(WITH_DEBIAN)
