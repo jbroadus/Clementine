@@ -30,12 +30,18 @@ namespace Clementine {
   public:
     using Req = ::UpnpActionRequest;
     UpnpActionRequest() = default;
-    UpnpActionRequest(const void* req) : req_((Req *)req) {}
-    UpnpActionRequest(const UpnpActionRequest& other) : req_(other.req_) {}
+    UpnpActionRequest(const void* req) : req_((Req *)req), resp_(nullptr) {}
+    UpnpActionRequest(const UpnpActionRequest& other) : req_(other.req_), resp_(other.resp_) {}
 
     QString GetServiceId() const;
+    QString GetActionName() const;
+
+    // Indicates that event was received
+    void InitResponse(const QString& serviceType);
+
     // We don't own this memory;
     Req* req_;
+    IXML_Document* resp_;
   };
 
   class UpnpSubscriptionRequest : public QObject {

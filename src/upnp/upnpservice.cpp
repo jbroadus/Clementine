@@ -20,22 +20,32 @@
 #include "core/logging.h"
 #include "scpdbuilder.h"
 #include "scpdparser.h"
+#include "upnpevents.h"
 #include "upnpmanager.h"
 #include "upnpserver.h"
 
 UpnpService::UpnpService(const QString& name, int rev, UpnpManager* manager, QObject* parent)
   : QObject(parent),
     name_(name),
+    type_(QString("urn:schemas-upnp-org:service:%1:1").arg(name)),
     id_(QString("urn:upnp-org:serviceId:%1").arg(name)),
     rev_(rev),
     manager_(manager) {}
 
+void UpnpService::AddAction(UpnpAction&& action) {
+  actionMap_[action.name_] = action;
+}
+
+void UpnpService::ActionRequest(Clementine::UpnpActionRequest req) {
+  const UpnpAction& action = actionMap_.value(req.GetActionName());
+  qLog(Debug) << name_ << "got action" << action.name_;
+  req.InitResponse(type_);
+}
+
 bool UpnpService::FillServiceEntry(QXmlStreamWriter* writer) {
-  QString type = QString("urn:schemas-upnp-org:service:%1:1").arg(name_);
-  QString id = QString("urn:upnp-org:serviceId:%1").arg(name_);
   writer->writeStartElement("service");
-  writer->writeTextElement("serviceType", type);
-  writer->writeTextElement("serviceId", id);
+  writer->writeTextElement("serviceType", type_);
+  writer->writeTextElement("serviceId", id_);
   writer->writeTextElement("SCPDURL", ScpdUrl());
   writer->writeTextElement("controlURL", ControlUrl());
   writer->writeTextElement("eventSubURL", EventUrl());

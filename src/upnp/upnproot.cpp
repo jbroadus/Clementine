@@ -87,7 +87,7 @@ void UpnpRoot::ActionRequest(const Clementine::UpnpActionRequest& req) {
   if (service == nullptr) {
     qLog(Warning) << "Received action for unknown service" << req.GetServiceId();
   }
-  qLog(Debug) << "Event for" << req.GetServiceId();
+  service->ActionRequest(req);
 }
 
 void UpnpRoot::SubscriptionRequest(const Clementine::UpnpSubscriptionRequest& req) {

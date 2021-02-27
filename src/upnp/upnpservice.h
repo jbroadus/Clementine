@@ -19,11 +19,16 @@
 #define UPNPSERVICE_H
 
 #include <QFile>
+#include <QHash>
 #include <QObject>
 #include <QString>
 #include <QXmlStreamWriter>
 
 class UpnpManager;
+
+namespace Clementine {
+  class UpnpActionRequest;
+};
 
 class UpnpVar {
 public:
@@ -72,7 +77,8 @@ public:
   QString name_;
 };
   
-typedef QVector<UpnpAction> UpnpActionList;
+typedef QList<UpnpAction> UpnpActionList;
+typedef QHash<QString, UpnpAction> UpnpActionMap;
 
 
 class UpnpService : public QObject {
@@ -85,7 +91,9 @@ class UpnpService : public QObject {
   // Add service intry for root desc.
   virtual bool FillServiceEntry(QXmlStreamWriter* writer);
 
-  const UpnpActionList& actions() { return actions_; }
+  const UpnpActionList actions() { return actionMap_.values(); }
+  void AddAction(UpnpAction&& action);
+  void ActionRequest(Clementine::UpnpActionRequest req);
 
   const QString& id() { return id_; }
  protected:
@@ -95,6 +103,7 @@ class UpnpService : public QObject {
   
   const QString url_;
   const QString name_;
+  const QString type_;
   const QString id_;
   const int rev_;
 
@@ -102,7 +111,7 @@ class UpnpService : public QObject {
 
  protected:
   friend class ScpdParser;
-  UpnpActionList actions_;
+  UpnpActionMap actionMap_;
   UpnpVarList vars_;
 };
 

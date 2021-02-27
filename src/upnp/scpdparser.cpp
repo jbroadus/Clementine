@@ -85,7 +85,7 @@ bool ScpdParser::parseAction() {
     qLog(Error) << "Missing required action name.";
     return false;
   }
-  service_->actions_ << action;
+  service_->AddAction(std::move(action));
 
   return true;
 }
