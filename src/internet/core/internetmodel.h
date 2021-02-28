@@ -34,7 +34,6 @@ class CoverProviders;
 class Database;
 class GlobalSearch;
 class MergedProxyModel;
-class PlayerInterface;
 class InternetService;
 class SettingsDialog;
 class TaskManager;
