@@ -54,6 +54,7 @@
 #include "networkremote/networkremotehelper.h"
 #include "playlist/playlistbackend.h"
 #include "playlist/playlistmanager.h"
+#include "plugin/pluginmanager.h"
 #include "ui/splash.h"
 
 #ifdef HAVE_LIBLASTFM
@@ -126,6 +127,7 @@ class ApplicationImpl {
         task_manager_([=]() { return new TaskManager(app); }),
         player_([=]() { return new Player(app, app); }),
         playlist_manager_([=]() { return new PlaylistManager(app); }),
+        plugin_manager_([=]() { return new PluginManager(app); }),
         current_art_loader_([=]() { return new CurrentArtLoader(app, app); }),
         global_search_([=]() { return new GlobalSearch(app, app); }),
         internet_model_([=]() { return new InternetModel(app, app); }),
@@ -185,6 +187,7 @@ class ApplicationImpl {
   Lazy<TaskManager> task_manager_;
   Lazy<Player> player_;
   Lazy<PlaylistManager> playlist_manager_;
+  Lazy<PluginManager> plugin_manager_;
   Lazy<CurrentArtLoader> current_art_loader_;
   Lazy<GlobalSearch> global_search_;
   Lazy<InternetModel> internet_model_;
@@ -261,6 +264,8 @@ void Application::AddError(const QString& message) { emit ErrorAdded(message); }
 
 void Application::Starting() {
   qLog(Debug) << "Application starting";
+
+  plugin_manager()->StartAll();
 
   // Hide the splash
   if (splash_) {
@@ -352,6 +357,10 @@ PlaylistBackend* Application::playlist_backend() const {
 
 PlaylistManager* Application::playlist_manager() const {
   return p_->playlist_manager_.get();
+}
+
+PluginManager* Application::plugin_manager() const {
+  return p_->plugin_manager_.get();
 }
 
 PodcastBackend* Application::podcast_backend() const {

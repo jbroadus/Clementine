@@ -457,6 +457,11 @@ if(HAVE_SPOTIFY)
   add_subdirectory(ext/libclementine-spotifyblob)
 endif(HAVE_SPOTIFY)
 
+option(USE_PLUGINS "Include plugin architecture" ON)
+if(USE_PLUGINS)
+  add_subdirectory(ext/libclementine-plugin)
+endif(USE_PLUGINS)
+
 option(WITH_DEBIAN OFF)
 if(WITH_DEBIAN)
   add_subdirectory(debian)

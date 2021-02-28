@@ -50,6 +50,7 @@
 #cmakedefine HAVE_SPOTIFY
 #cmakedefine TAGLIB_HAS_OPUS
 #cmakedefine USE_INSTALL_PREFIX
+#cmakedefine USE_PLUGINS
 #cmakedefine USE_SYSTEM_PROJECTM
 #cmakedefine USE_SYSTEM_SHA2
 #cmakedefine USE_BUNDLE

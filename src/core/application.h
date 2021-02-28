@@ -50,6 +50,7 @@ class NetworkRemoteHelper;
 class Player;
 class PlaylistBackend;
 class PlaylistManager;
+class PluginManager;
 class PodcastBackend;
 class PodcastDeleter;
 class PodcastDownloader;
@@ -101,6 +102,7 @@ class Application : public QObject {
   Player* player() const;
   PlaylistBackend* playlist_backend() const;
   PlaylistManager* playlist_manager() const;
+  PluginManager* plugin_manager() const;
   PodcastBackend* podcast_backend() const;
   PodcastDeleter* podcast_deleter() const;
   PodcastDownloader* podcast_downloader() const;

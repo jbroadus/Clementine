@@ -47,6 +47,7 @@ include_directories(${CMAKE_SOURCE_DIR}/ext/libclementine-tagreader)
 include_directories(${CMAKE_BINARY_DIR}/ext/libclementine-tagreader)
 include_directories(${CMAKE_SOURCE_DIR}/ext/libclementine-remote)
 include_directories(${CMAKE_BINARY_DIR}/ext/libclementine-remote)
+include_directories(${CMAKE_SOURCE_DIR}/ext/libclementine-plugin)
 if(HAVE_SPOTIFY)
   include_directories(${CMAKE_SOURCE_DIR}/ext/libclementine-spotifyblob)
   include_directories(${CMAKE_BINARY_DIR}/ext/libclementine-spotifyblob)
@@ -263,6 +264,9 @@ set(SOURCES
   playlistparsers/wplparser.cpp
   playlistparsers/xmlparser.cpp
   playlistparsers/xspfparser.cpp
+
+  plugin/plugin.cpp
+  plugin/pluginmanager.cpp
 
   internet/podcasts/addpodcastbyurl.cpp
   internet/podcasts/addpodcastdialog.cpp
@@ -576,6 +580,8 @@ set(HEADERS
   playlistparsers/playlistparser.h
   playlistparsers/plsparser.h
   playlistparsers/xspfparser.h
+
+  plugin/pluginmanager.h
 
   internet/podcasts/addpodcastbyurl.h
   internet/podcasts/addpodcastdialog.h
@@ -1273,6 +1279,7 @@ target_link_libraries(clementine_lib
   libclementine-common
   libclementine-tagreader
   libclementine-remote
+  clementine-plugin-host
 
   ${TAGLIB_LIBRARIES}
   ${MYGPOQT5_LIBRARIES}
