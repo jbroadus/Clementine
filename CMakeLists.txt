@@ -62,6 +62,7 @@ pkg_check_modules(CDIO libcdio)
 pkg_check_modules(CHROMAPRINT REQUIRED libchromaprint)
 pkg_search_module(CRYPTOPP cryptopp libcrypto++)
 pkg_check_modules(GIO gio-2.0)
+pkg_check_modules(GLEW glew)
 pkg_check_modules(GLIB REQUIRED glib-2.0)
 pkg_check_modules(GOBJECT REQUIRED gobject-2.0)
 pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)
@@ -328,6 +329,7 @@ optional_component(LIBPULSE ON "Pulse audio integration"
 
 optional_component(VISUALISATIONS ON "Visualisations"
   DEPENDS "opengl" OPENGL_FOUND
+  DEPENDS "glew" GLEW_FOUND
 )
 
 optional_component(TRANSLATIONS ON "Translations"
