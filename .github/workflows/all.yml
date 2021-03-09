@@ -399,7 +399,7 @@ jobs:
         working-directory: bin
         run: >
           cmake ..
-          -DCMAKE_TOOLCHAIN_FILE=../Toolchain-mingw32.cmake
+          -DCMAKE_TOOLCHAIN_FILE=../Toolchain-mingw64.cmake
           -DCMAKE_BUILD_TYPE=Release
       - name: make
         working-directory: bin
@@ -410,15 +410,15 @@ jobs:
       - name: Copy base runtime DLLs
         run: >
           cp
-          /usr/lib/gcc/i686-w64-mingw32/*-posix/libgcc_s_sjlj-1.dll
-          /usr/lib/gcc/i686-w64-mingw32/*-posix/libstdc++-6.dll
-          /usr/i686-w64-mingw32/lib/libwinpthread-1.dll
+          /usr/lib/gcc/i686-w64-mingw64/*-posix/libgcc_s_sjlj-1.dll
+          /usr/lib/gcc/i686-w64-mingw64/*-posix/libstdc++-6.dll
+          /usr/i686-w64-mingw64/lib/libwinpthread-1.dll
           dist/windows
       - name: Copy DLL depdendencies
         working-directory: /target/bin
         run: >
             cp
-            glew32.dll
+            glew64.dll
             libcdio-19.dll
             libchromaprint.dll
             libcrypto-1_1.dll
