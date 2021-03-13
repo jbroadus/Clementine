@@ -473,7 +473,15 @@ void GstEngine::StartFadeoutPause() {
 bool GstEngine::Play(quint64 offset_nanosec) {
   EnsureInitialised();
 
-  if (!current_pipeline_ || current_pipeline_->is_buffering()) return false;
+  if (!current_pipeline_) {
+    qLog(Debug) << "No current pipeline.";
+    return false;
+  }
+
+  if (current_pipeline_->is_buffering()) {
+    qLog(Debug) << "Pipeline is buffering.";
+    return false;
+  }
 
   QFuture<GstStateChangeReturn> future =
       current_pipeline_->SetState(GST_STATE_PLAYING);

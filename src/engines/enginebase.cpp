@@ -24,6 +24,7 @@
 #include <QSettings>
 #include <cmath>
 
+#include "core/logging.h"
 #include "core/timeconstants.h"
 
 const char* Engine::Base::kSettingsGroup = "Player";
@@ -94,8 +95,10 @@ int Engine::Base::AddBackgroundStream(const QUrl& url) { return -1; }
 bool Engine::Base::Play(const MediaPlaybackRequest& req, TrackChangeFlags c,
                         bool force_stop_at_end, quint64 beginning_nanosec,
                         qint64 end_nanosec) {
-  if (!Load(req, c, force_stop_at_end, beginning_nanosec, end_nanosec))
+  if (!Load(req, c, force_stop_at_end, beginning_nanosec, end_nanosec)) {
+    qLog(Debug) << "Load failed";
     return false;
+  }
 
   return Play(0);
 }
