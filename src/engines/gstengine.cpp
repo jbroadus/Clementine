@@ -490,6 +490,7 @@ bool GstEngine::Play(quint64 offset_nanosec) {
              future, offset_nanosec, current_pipeline_->id());
 
   if (is_fading_out_to_pause_) {
+    qLog(Debug) << "Paused";
     current_pipeline_->SetState(GST_STATE_PAUSED);
   }
 
@@ -500,7 +501,10 @@ void GstEngine::PlayDone(QFuture<GstStateChangeReturn> future,
                          const quint64 offset_nanosec, const int pipeline_id) {
   GstStateChangeReturn ret = future.result();
 
-  if (!IsCurrentPipeline(pipeline_id)) return;
+  if (!IsCurrentPipeline(pipeline_id)) {
+    qLog(Debug) << "Received signal for a stale pipeline";
+    return;
+  }
 
   if (ret == GST_STATE_CHANGE_FAILURE) {
     // Failure, but we got a redirection URL - try loading that instead
