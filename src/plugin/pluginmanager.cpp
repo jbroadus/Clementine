@@ -31,7 +31,7 @@
 PluginManager::PluginManager(Application* app, QObject* parent)
   : QObject(parent),
     app_(app) {
-  FindPlugins();
+  InitPlugins();
 }
 
 PluginManager::~PluginManager() {
@@ -40,7 +40,13 @@ PluginManager::~PluginManager() {
   }
 }
 
-void PluginManager::FindPlugins() {
+void PluginManager::InitPlugins() {
+  for (QStaticPlugin& plugin : QPluginLoader::staticPlugins()) {
+    QString iid = plugin.metaData()["IID"].toString();
+    if (AddInterface(plugin.instance())) {
+      qLog(Debug) << "Initialized static plugin" << plugin.metaData();
+    }
+  }
   FindPlugins(QDir(Utilities::GetConfigPath(Utilities::Path_Root)).filePath("plugins"));
 }
 

@@ -37,7 +37,7 @@ class PluginManager : public QObject {
   void StartAll();
 
  private:
-  void FindPlugins();
+  void InitPlugins();
   void FindPlugins(const QString& path);
   bool LoadPlugin(const QString& name);
   bool AddInterface(QObject* inst);

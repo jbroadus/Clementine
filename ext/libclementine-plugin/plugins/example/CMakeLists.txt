@@ -1,9 +1,3 @@
-project(example-plugin LANGUAGES CXX)
-cmake_minimum_required(VERSION 3.1.0)
-
-set(QT_MIN_VERSION 5.6.0)
-find_package(Qt5 ${QT_MIN_VERSION} COMPONENTS Core REQUIRED)
-
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_SOURCE_DIR}/ext/libclementine-plugin)
@@ -19,17 +13,20 @@ set(HEADERS
   exampleplayer.h
   )
 
+if (USE_STATIC_PLUGINS)
+  add_definitions(-DQT_STATICPLUGIN)
+endif (USE_STATIC_PLUGINS)
+
+unset(MOC)
 qt5_wrap_cpp(MOC ${HEADERS})
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-
-add_library(example-plugin SHARED
+add_library(clementine-plugin-example ${PLUGIN_LIBRARY_TYPE}
   ${SOURCES}
   ${MOC}
 )
 
-target_link_libraries(example-plugin
+target_link_libraries(clementine-plugin-example
   Qt5::Core
   Qt5::Network
-  libclementine-plugin
+  clementine-plugin
 )

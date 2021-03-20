@@ -1278,7 +1278,7 @@ target_link_libraries(clementine_lib
   libclementine-common
   libclementine-tagreader
   libclementine-remote
-  libclementine-plugin
+  clementine-plugin-host
 
   ${TAGLIB_LIBRARIES}
   ${MYGPOQT5_LIBRARIES}
