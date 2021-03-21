@@ -459,7 +459,7 @@ endif(HAVE_SPOTIFY)
 
 option(USE_PLUGINS "Include plugin architecture" ON)
 if(USE_PLUGINS)
-  option(USE_STATIC_PLUGINS "Static link plugins" OFF)
+  option(USE_PLUGINS_STATIC "Static link plugins" OFF)
   add_subdirectory(ext/libclementine-plugin)
 endif(USE_PLUGINS)
 

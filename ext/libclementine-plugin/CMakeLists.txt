@@ -1,7 +1,7 @@
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-set(SOURCES
+set(COMMON_SOURCES
   common/pluginbase.cpp
 )
 
@@ -16,7 +16,7 @@ qt5_wrap_cpp(MOC ${HEADERS})
 
 # Plugin library
 add_library(clementine-plugin STATIC
-  ${SOURCES}
+  ${COMMON_SOURCES}
   ${MOC}
 )
 
@@ -27,7 +27,8 @@ target_link_libraries(clementine-plugin
 
 # Host library
 add_library(clementine-plugin-host STATIC
-  ${SOURCES}
+  plugin-host/init.cpp
+  ${COMMON_SOURCES}
   ${MOC}
   )
 
@@ -35,9 +36,9 @@ target_link_libraries(clementine-plugin-host
   Qt5::Core
 )
 
-if (USE_STATIC_PLUGINS)
+if (USE_PLUGINS_STATIC)
   target_link_libraries(clementine-plugin-host
     PUBLIC clementine-plugin-bundle)
-endif (USE_STATIC_PLUGINS)
+endif (USE_PLUGINS_STATIC)
 
 add_subdirectory(plugins)

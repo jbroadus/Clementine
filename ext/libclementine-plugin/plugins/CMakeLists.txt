@@ -1,10 +1,10 @@
 option(INCLUDE_EXAMPLE_PLUGIN "Example telnet control plugin." OFF)
 
-if(USE_STATIC_PLUGINS)
+if(USE_PLUGINS_STATIC)
   set(PLUGIN_LIBRARY_TYPE STATIC)
-else(USE_STATIC_PLUGINS)
+else(USE_PLUGINS_STATIC)
   set(PLUGIN_LIBRARY_TYPE SHARED)
-endif(USE_STATIC_PLUGINS)
+endif(USE_PLUGINS_STATIC)
 
 add_library(clementine-plugin-bundle STATIC
   init_static_plugins.cpp

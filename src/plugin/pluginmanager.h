@@ -23,7 +23,9 @@
 
 class Application;
 class QDir;
+class QJsonObject;
 class QPluginLoader;
+
 namespace IClementine {
   class Service;
   class Player;
@@ -40,7 +42,7 @@ class PluginManager : public QObject {
   void InitPlugins();
   void FindPlugins(const QString& path);
   bool LoadPlugin(const QString& name);
-  bool AddInterface(QObject* inst);
+  bool AddInterface(const QJsonObject& metaData, QObject* inst);
   void ConnectPlayer(IClementine::Player* interface);
 
   QList<QPluginLoader*> dynamicPlugins_;

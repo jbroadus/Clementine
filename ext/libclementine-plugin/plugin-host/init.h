@@ -15,12 +15,9 @@
    along with Clementine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <QtPlugin>
+#ifndef PLUGIN_HOST_INIT_H
+#define PLUGIN_HOST_INIT_H
 
-// Q_IMPORT_PLUGIN creates a static initializer class that tends to get omitted
-// when the library is linked, so do the registration manually.
-extern const QStaticPlugin qt_static_plugin_ExamplePlugin();
+void PluginHostInit();
 
-void RegisterStaticPlugins() {
-  qRegisterStaticPluginFunction(qt_static_plugin_ExamplePlugin());
-}
+#endif  // PLUGIN_HOST_INIT_H

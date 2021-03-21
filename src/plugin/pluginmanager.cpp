@@ -28,6 +28,8 @@
 #include <QDir>
 #include <QPluginLoader>
 
+extern void PluginHostInit();
+
 PluginManager::PluginManager(Application* app, QObject* parent)
   : QObject(parent),
     app_(app) {
@@ -41,11 +43,9 @@ PluginManager::~PluginManager() {
 }
 
 void PluginManager::InitPlugins() {
+  PluginHostInit();
   for (QStaticPlugin& plugin : QPluginLoader::staticPlugins()) {
-    QString iid = plugin.metaData()["IID"].toString();
-    if (AddInterface(plugin.instance())) {
-      qLog(Debug) << "Initialized static plugin" << plugin.metaData();
-    }
+    AddInterface(plugin.metaData(), plugin.instance());
   }
   FindPlugins(QDir(Utilities::GetConfigPath(Utilities::Path_Root)).filePath("plugins"));
 }
@@ -67,7 +67,7 @@ bool PluginManager::LoadPlugin(const QString& path) {
     return false;
   }
 
-  if (!AddInterface(loader->instance())) {
+  if (!AddInterface(loader->metaData(), loader->instance())) {
     loader->unload();
     delete loader;
     return false;
@@ -84,11 +84,13 @@ void PluginManager::StartAll() {
   }
 }
 
-bool PluginManager::AddInterface(QObject* inst) {
+bool PluginManager::AddInterface(const QJsonObject& metaData, QObject* inst) {
+  QString iid = metaData["IID"].toString();
+  qLog(Debug) << "Try to add plugin" << iid;
   IClementine::Service* service =
     qobject_cast<IClementine::Service *>(inst);
   if (service == nullptr) {
-    qLog(Debug) << "Not a service plugin.";
+    qLog(Debug) << "Not a service plugin";
     return false;
   }
 

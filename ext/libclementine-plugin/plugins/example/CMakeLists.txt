@@ -13,9 +13,9 @@ set(HEADERS
   exampleplayer.h
   )
 
-if (USE_STATIC_PLUGINS)
+if (USE_PLUGINS_STATIC)
   add_definitions(-DQT_STATICPLUGIN)
-endif (USE_STATIC_PLUGINS)
+endif (USE_PLUGINS_STATIC)
 
 unset(MOC)
 qt5_wrap_cpp(MOC ${HEADERS})
