@@ -15,39 +15,41 @@
    along with Clementine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef PLUGINMANAGER_H
-#define PLUGINMANAGER_H
+#ifndef PLUGIN_H
+#define PLUGIN_H
 
-#include <QList>
 #include <QObject>
 
-class Application;
-class QDir;
+class PluginManager;
 class QJsonObject;
 class QPluginLoader;
-class Plugin;
 
-class PluginManager : public QObject {
+namespace IClementine {
+class Service;
+class ComponentInterface;
+class Player;
+class Settings;
+}  // namespace IClementine
+
+class Plugin : QObject {
  public:
-  PluginManager(Application* app, QObject* parent = nullptr);
-  ~PluginManager();
+  Plugin(PluginManager* manager);
+  virtual ~Plugin();
 
-  void StartAll();
+  bool Load(const QString& path);
+  bool AddInterfaces(const QJsonObject& metaData, QObject* inst);
+  void ConnectComponent(IClementine::ComponentInterface* interface);
+  void ConnectPlayer(IClementine::Player* interface);
+  void ConnectSettings(IClementine::Settings* interface);
 
-  Application* app() { return app_; }
+  IClementine::Service* service_;
+  IClementine::Player* player_;
+  IClementine::Settings* settings_;
 
- private:
-  friend class PluginManagerSettingsPage;
-  QList<Plugin*> GetPlugins() { return plugins_; }
+  // Null for static plugins.
+  QPluginLoader* loader_;
 
- private:
-  void InitPlugins();
-  void FindPlugins(const QString& path);
-  bool LoadPlugin(const QString& name);
-
-  QList<Plugin*> plugins_;
-
-  Application* app_;
+  PluginManager* mgr_;
 };
 
-#endif  // PLUGINMANAGER_H
+#endif  // PLUGIN_H

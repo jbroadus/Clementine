@@ -8,6 +8,7 @@ set(COMMON_SOURCES
 set(HEADERS
   interfaces/service.h
   interfaces/player.h
+  interfaces/settings.h
   common/pluginbase.h
 )
 

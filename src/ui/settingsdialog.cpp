@@ -39,6 +39,7 @@
 #include "notificationssettingspage.h"
 #include "playbacksettingspage.h"
 #include "playlist/playlistview.h"
+#include "plugin/pluginsettingscategory.h"
 #include "settingscategory.h"
 #include "songinfo/songinfosettingspage.h"
 #include "songmetadatasettingspage.h"
@@ -141,6 +142,9 @@ SettingsDialog::SettingsDialog(Application* app, BackgroundStreams* streams,
   // Internet services category
   AddCategory(new InternetSettingsCategory(this));
 
+  // Plugin category
+  AddCategory(new PluginSettingsCategory(this));
+
   // List box
   connect(ui_->list,
           SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)),
@@ -171,7 +175,10 @@ void SettingsDialog::AddPageToStack(Page id, SettingsPage* page,
   area->setWidget(page);
   area->setWidgetResizable(true);
   area->setFrameShape(QFrame::NoFrame);
-  area->setMinimumWidth(page->layout()->minimumSize().width());
+  QLayout* layout = page->layout();
+  if (layout != nullptr) {
+    area->setMinimumWidth(layout->minimumSize().width());
+  }
 
   // Add the page to the stack
   ui_->stacked_widget->addWidget(area);

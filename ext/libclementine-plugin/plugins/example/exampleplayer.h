@@ -1,5 +1,3 @@
-#include "interfaces/player.h"
-
 #ifndef EXAMPLE_PLAYER_H
 #define EXAMPLE_PLAYER_H
 

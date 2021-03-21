@@ -15,26 +15,14 @@
    along with Clementine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef INTERFACE_SERVICE_H
-#define INTERFACE_SERVICE_H
+#ifndef PLUGINSETTINGSPAGE_H
+#define PLUGINSETTINGSPAGE_H
 
-#include <QObject>
-#include "component.h"
+#include "ui/settingspage.h"
 
-namespace IClementine {
-  class Service {
-   public:
-    // Return the user-friendly name for the plugin.
-    virtual const QString GetName() = 0;
-    // Start the service.
-    virtual bool Start() = 0;
-    // Stop the service.
-    virtual bool Stop() = 0;
+class PluginSettingsPage : public SettingsPage {
+ public:
+  PluginSettingsPage(QWidget* settings, SettingsDialog* dialog);
+};
 
-    virtual const ComponentInterfaceList& GetInterfaces() = 0;
-  };
-}
-
-Q_DECLARE_INTERFACE(IClementine::Service, "org.clementine-player.Service")
-
-#endif  // INTERFACE_SERVICE_H
+#endif  // PLUGINSETTINGSPAGE_H

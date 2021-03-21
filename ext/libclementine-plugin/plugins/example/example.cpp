@@ -1,13 +1,19 @@
 #include "example.h"
 #include "exampleplayer.h"
+#include "examplesettings.h"
 
 #include <core/logging.h>
 
 #include <QTcpServer>
 #include <QTcpSocket>
 
-ExamplePlugin::ExamplePlugin() : PluginBase(), server_(new QTcpServer(this)), player_(new ExamplePlayer(this)) {
+ExamplePlugin::ExamplePlugin()
+  : PluginBase(),
+    server_(new QTcpServer(this)),
+    player_(new ExamplePlayer(this)),
+    settings_(new ExampleSettings(this)) {
   AddInterface(player_);
+  AddInterface(settings_);
 }
 
 bool ExamplePlugin::Start() {

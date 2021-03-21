@@ -265,7 +265,11 @@ set(SOURCES
   playlistparsers/xmlparser.cpp
   playlistparsers/xspfparser.cpp
 
+  plugin/plugin.cpp
   plugin/pluginmanager.cpp
+  plugin/pluginmanagersettingspage.cpp
+  plugin/pluginsettingscategory.cpp
+  plugin/pluginsettingspage.cpp
 
   internet/podcasts/addpodcastbyurl.cpp
   internet/podcasts/addpodcastdialog.cpp
@@ -581,6 +585,8 @@ set(HEADERS
   playlistparsers/xspfparser.h
 
   plugin/pluginmanager.h
+  plugin/pluginmanagersettingspage.h
+  plugin/pluginsettingspage.h
 
   internet/podcasts/addpodcastbyurl.h
   internet/podcasts/addpodcastdialog.h
@@ -746,6 +752,8 @@ set(UI
   playlist/playlistlistcontainer.ui
   playlist/playlistsequence.ui
   playlist/queuemanager.ui
+
+  plugin/pluginmanagersettingspage.ui
 
   internet/podcasts/addpodcastbyurl.ui
   internet/podcasts/addpodcastdialog.ui

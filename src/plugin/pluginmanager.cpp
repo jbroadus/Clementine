@@ -17,105 +17,57 @@
 
 #include "pluginmanager.h"
 
-#include "core/application.h"
-#include "core/logging.h"
-#include "core/player.h"
-#include "core/utilities.h"
-#include "interfaces/service.h"
-#include "interfaces/player.h"
-
 #include <QCoreApplication>
 #include <QDir>
 #include <QPluginLoader>
 
+#include "core/application.h"
+#include "core/logging.h"
+#include "core/utilities.h"
+#include "interfaces/service.h"
+#include "plugin.h"
+
 extern void PluginHostInit();
 
 PluginManager::PluginManager(Application* app, QObject* parent)
-  : QObject(parent),
-    app_(app) {
+    : QObject(parent), app_(app) {
   InitPlugins();
 }
 
-PluginManager::~PluginManager() {
-  for (QPluginLoader* loader : dynamicPlugins_) {
-    loader->unload();
+PluginManager::~PluginManager() {}
+
+void PluginManager::StartAll() {
+  for (Plugin* plugin : plugins_) {
+    plugin->service_->Start();
   }
 }
 
 void PluginManager::InitPlugins() {
   PluginHostInit();
-  for (QStaticPlugin& plugin : QPluginLoader::staticPlugins()) {
-    AddInterface(plugin.metaData(), plugin.instance());
+  for (QStaticPlugin& s : QPluginLoader::staticPlugins()) {
+    Plugin* plugin = new Plugin(this);
+    if (plugin->AddInterfaces(s.metaData(), s.instance())) {
+      plugins_ << plugin;
+    } else {
+      delete plugin;
+    }
   }
-  FindPlugins(QDir(Utilities::GetConfigPath(Utilities::Path_Root)).filePath("plugins"));
+  FindPlugins(
+      QDir(Utilities::GetConfigPath(Utilities::Path_Root)).filePath("plugins"));
 }
 
 void PluginManager::FindPlugins(const QString& path) {
   QDir dir(path);
-  for (const QFileInfo& info : dir.entryInfoList(QDir::AllEntries | QDir::NoDotAndDotDot)) {
+  for (const QFileInfo& info :
+       dir.entryInfoList(QDir::AllEntries | QDir::NoDotAndDotDot)) {
     if (info.isFile()) {
-      LoadPlugin(info.absoluteFilePath());
+      Plugin* plugin = new Plugin(this);
+      if (plugin->Load(info.absoluteFilePath())) {
+        plugins_ << plugin;
+        qLog(Info) << "Loaded plugin" << path;
+      } else {
+        delete plugin;
+      }
     }
   }
-}
-
-bool PluginManager::LoadPlugin(const QString& path) {
-  QPluginLoader* loader = new QPluginLoader(path, this);
-  if (!loader->load()) {
-    qLog(Error) << "Could not load module" << path << ":" << loader->errorString();
-    delete loader;
-    return false;
-  }
-
-  if (!AddInterface(loader->metaData(), loader->instance())) {
-    loader->unload();
-    delete loader;
-    return false;
-  }
-
-  qLog(Info) << "Loaded plugin" << path;
-  dynamicPlugins_ << loader;
-  return true;
-}
-
-void PluginManager::StartAll() {
-  for (IClementine::Service* service : services_) {
-    service->Start();
-  }
-}
-
-bool PluginManager::AddInterface(const QJsonObject& metaData, QObject* inst) {
-  QString iid = metaData["IID"].toString();
-  qLog(Debug) << "Try to add plugin" << iid;
-  IClementine::Service* service =
-    qobject_cast<IClementine::Service *>(inst);
-  if (service == nullptr) {
-    qLog(Debug) << "Not a service plugin";
-    return false;
-  }
-
-  // Set up component interfaces.
-  for (IClementine::ComponentInterface* interface : service->GetInterfaces()) {
-    IClementine::Player* player = qobject_cast<IClementine::Player *>(interface);
-    if (player) {
-      ConnectPlayer(player);
-    } else {
-      qLog(Warning) << "Unknown interface" << interface->GetName();
-    }
-  }
-
-  services_ << service;
-  return true;
-}
-
-void PluginManager::ConnectPlayer(IClementine::Player* interface) {
-  qLog(Debug) << "Connecting player interface";
-  Player* player = app_->player();
-  connect(player, SIGNAL(Playing()), interface, SLOT(Playing()));
-  connect(player, SIGNAL(Paused()), interface, SLOT(Paused()));
-  connect(player, SIGNAL(Stopped()), interface, SLOT(Stopped()));
-
-  connect(interface, SIGNAL(Play()), player, SLOT(Play()));
-  connect(interface, SIGNAL(Pause()), player, SLOT(Pause()));
-  connect(interface, SIGNAL(Stop()), player, SLOT(Stop()));
 }

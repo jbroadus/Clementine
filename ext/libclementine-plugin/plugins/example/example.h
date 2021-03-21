@@ -5,6 +5,7 @@
 class QTcpServer;
 class QTcpSocket;
 class ExamplePlayer;
+class ExampleSettings;
 
 class ExamplePlugin : public PluginBase {
   Q_OBJECT
@@ -14,6 +15,7 @@ class ExamplePlugin : public PluginBase {
   ExamplePlugin();
 
  private:
+  const QString GetName() override { return "Telnet Example"; };
   bool Start() override;
   bool Stop() override;
   void ReadSocket(QTcpSocket *socket);
@@ -29,5 +31,7 @@ class ExamplePlugin : public PluginBase {
 
  private:
   QTcpServer* server_;
+  // Interface implementations
   ExamplePlayer* player_;
+  ExampleSettings* settings_;
 };
