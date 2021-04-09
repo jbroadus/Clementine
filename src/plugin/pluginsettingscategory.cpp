@@ -17,8 +17,29 @@
 
 #include "pluginsettingscategory.h"
 
+#include "core/application.h"
+#include "core/logging.h"
+#include "interfaces/settings.h"
+#include "plugin.h"
+#include "pluginmanager.h"
 #include "pluginmanagersettingspage.h"
+#include "pluginsettingspage.h"
 
 PluginSettingsCategory::PluginSettingsCategory(SettingsDialog* dialog)
     : SettingsCategory(SettingsDialog::Page_PluginManager,
-                       new PluginManagerSettingsPage(dialog), dialog) {}
+                       new PluginManagerSettingsPage(dialog), dialog),
+      next_id_(SettingsDialog::Page_PluginManager + 1) {
+  AddChildren();
+}
+
+void PluginSettingsCategory::AddChildren() {
+  for (Plugin* plugin : dialog_->app()->plugin_manager()->GetPlugins()) {
+    IClementine::Settings* interface = plugin->GetSettingsInterface();
+    if (interface != nullptr) {
+      qLog(Debug) << "Add settings for plugin" << plugin->GetName();
+      AddPage(SettingsDialog::Page(next_id_++),
+              new PluginSettingsPage(interface->GetSettingsPage(),
+                                                 dialog_));
+    }
+  }
+}

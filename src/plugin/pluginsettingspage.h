@@ -23,6 +23,9 @@
 class PluginSettingsPage : public SettingsPage {
  public:
   PluginSettingsPage(QWidget* settings, SettingsDialog* dialog);
+
+  void Load() override;
+  void Save() override;
 };
 
 #endif  // PLUGINSETTINGSPAGE_H

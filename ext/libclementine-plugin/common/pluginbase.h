@@ -32,15 +32,9 @@ class PluginBase : public QObject, public IClementine::Service {
   bool Start() override { return true; }
   bool Stop() override { return true; }
 
-  virtual const IClementine::ComponentInterfaceList& GetInterfaces() {
-    return interfaces_;
-  };
-  void AddInterface(IClementine::ComponentInterface* interface) {
-    interfaces_ << interface;
-  }
-
-protected:
-  IClementine::ComponentInterfaceList interfaces_;
+  // Component interface accessors.
+  IClementine::Player* GetPlayerInterface() override { return nullptr; }
+  IClementine::Settings* GetSettingsInterface() override { return nullptr; }
 };
 
 #endif  // PLUGINBASE_H

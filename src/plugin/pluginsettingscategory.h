@@ -23,6 +23,11 @@
 class PluginSettingsCategory : public SettingsCategory {
  public:
   PluginSettingsCategory(SettingsDialog* dialog);
+
+ private:
+  void AddChildren();
+
+  int next_id_;
 };
 
 #endif  // PLUGINSETTINGSCATEGORY_H

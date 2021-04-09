@@ -14,6 +14,9 @@ class ExamplePlugin : public PluginBase {
  public:
   ExamplePlugin();
 
+  IClementine::Player* GetPlayerInterface() override;
+  IClementine::Settings* GetSettingsInterface() override;
+
  private:
   const QString GetName() override { return "Telnet Example"; };
   bool Start() override;

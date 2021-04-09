@@ -37,8 +37,9 @@ class PluginManager : public QObject {
   Application* app() { return app_; }
 
  private:
+  friend class PluginSettingsCategory;
   friend class PluginManagerSettingsPage;
-  QList<Plugin*> GetPlugins() { return plugins_; }
+  const QList<Plugin*>& GetPlugins() { return plugins_; }
 
  private:
   void InitPlugins();

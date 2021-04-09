@@ -31,8 +31,8 @@ class PluginManagerSettingsPage : public SettingsPage {
   explicit PluginManagerSettingsPage(SettingsDialog* dialog);
   ~PluginManagerSettingsPage();
 
-  void Load();
-  void Save();
+  void Load() override;
+  void Save() override;
 
  private:
   std::unique_ptr<Ui_PluginManagerSettingsPage> ui_;

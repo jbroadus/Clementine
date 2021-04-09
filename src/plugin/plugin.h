@@ -25,16 +25,18 @@ class QJsonObject;
 class QPluginLoader;
 
 namespace IClementine {
-class Service;
-class ComponentInterface;
-class Player;
-class Settings;
+  class Service;
+  class ComponentInterface;
+  class Player;
+  class Settings;
 }  // namespace IClementine
 
-class Plugin : QObject {
+class Plugin : public QObject {
  public:
   Plugin(PluginManager* manager);
   virtual ~Plugin();
+
+  QString GetName();
 
   bool Load(const QString& path);
   bool AddInterfaces(const QJsonObject& metaData, QObject* inst);
@@ -42,9 +44,13 @@ class Plugin : QObject {
   void ConnectPlayer(IClementine::Player* interface);
   void ConnectSettings(IClementine::Settings* interface);
 
+ private:
+  friend class PluginSettingsCategory;
+  IClementine::Settings* GetSettingsInterface();
+
+ private:
+  friend class PluginManager;
   IClementine::Service* service_;
-  IClementine::Player* player_;
-  IClementine::Settings* settings_;
 
   // Null for static plugins.
   QPluginLoader* loader_;

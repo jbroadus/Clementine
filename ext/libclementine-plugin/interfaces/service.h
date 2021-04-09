@@ -19,9 +19,11 @@
 #define INTERFACE_SERVICE_H
 
 #include <QObject>
-#include "component.h"
 
 namespace IClementine {
+  class Player;
+  class Settings;
+
   class Service {
    public:
     // Return the user-friendly name for the plugin.
@@ -30,8 +32,10 @@ namespace IClementine {
     virtual bool Start() = 0;
     // Stop the service.
     virtual bool Stop() = 0;
-
-    virtual const ComponentInterfaceList& GetInterfaces() = 0;
+ 
+    // Component interface accessors.
+    virtual Player* GetPlayerInterface() = 0;
+    virtual Settings* GetSettingsInterface() = 0;
   };
 }
 

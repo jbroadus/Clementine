@@ -33,7 +33,7 @@ PluginManagerSettingsPage::~PluginManagerSettingsPage() {}
 void PluginManagerSettingsPage::Load() {
   PluginManager* mgr = dialog()->app()->plugin_manager();
   for (Plugin* plugin : mgr->GetPlugins()) {
-    ui_->plugin_list->addItem(plugin->service_->GetName());
+    ui_->plugin_list->addItem(plugin->GetName());
   }
 }
 

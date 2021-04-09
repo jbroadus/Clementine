@@ -12,8 +12,6 @@ ExamplePlugin::ExamplePlugin()
     server_(new QTcpServer(this)),
     player_(new ExamplePlayer(this)),
     settings_(new ExampleSettings(this)) {
-  AddInterface(player_);
-  AddInterface(settings_);
 }
 
 bool ExamplePlugin::Start() {
@@ -27,6 +25,14 @@ bool ExamplePlugin::Start() {
 bool ExamplePlugin::Stop() {
   qLog(Debug) << "Stop";
   return true;
+}
+
+IClementine::Player* ExamplePlugin::GetPlayerInterface() {
+  return player_;
+}
+
+IClementine::Settings* ExamplePlugin::GetSettingsInterface() {
+  return settings_;
 }
 
 void ExamplePlugin::ReadSocket(QTcpSocket *socket) {

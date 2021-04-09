@@ -30,8 +30,6 @@
 Plugin::Plugin(PluginManager* manager)
     : QObject(manager),
       service_(nullptr),
-      player_(nullptr),
-      settings_(nullptr),
       loader_(nullptr),
       mgr_(manager) {}
 
@@ -40,6 +38,13 @@ Plugin::~Plugin() {
     loader_->unload();
     delete loader_;
   }
+}
+
+QString Plugin::GetName() {
+  if (service_ != nullptr) {
+    return service_->GetName();
+  }
+  return QString();
 }
 
 bool Plugin::Load(const QString& path) {
@@ -67,33 +72,19 @@ bool Plugin::AddInterfaces(const QJsonObject& metaData, QObject* inst) {
   }
 
   // Set up component interfaces.
-  for (IClementine::ComponentInterface* interface : service_->GetInterfaces()) {
-    ConnectComponent(interface);
+  if (service_->GetPlayerInterface() != nullptr) {
+    ConnectPlayer(service_->GetPlayerInterface());
+  }
+
+  if (service_->GetSettingsInterface() != nullptr) {
+    ConnectSettings(service_->GetSettingsInterface());
   }
 
   return true;
 }
 
-void Plugin::ConnectComponent(IClementine::ComponentInterface* interface) {
-  IClementine::Player* player = qobject_cast<IClementine::Player*>(interface);
-  if (player) {
-    ConnectPlayer(player);
-    return;
-  }
-
-  IClementine::Settings* settings =
-      qobject_cast<IClementine::Settings*>(interface);
-  if (settings) {
-    ConnectSettings(settings);
-    return;
-  }
-
-  qLog(Warning) << "Unknown interface" << interface->GetName();
-}
-
 void Plugin::ConnectPlayer(IClementine::Player* interface) {
   qLog(Debug) << "Connecting player interface";
-  player_ = interface;
   Player* player = mgr_->app()->player();
   connect(player, SIGNAL(Playing()), interface, SLOT(Playing()));
   connect(player, SIGNAL(Paused()), interface, SLOT(Paused()));
@@ -106,5 +97,8 @@ void Plugin::ConnectPlayer(IClementine::Player* interface) {
 
 void Plugin::ConnectSettings(IClementine::Settings* interface) {
   qLog(Debug) << "Connecting settings interface";
-  settings_ = interface;
+}
+
+IClementine::Settings* Plugin::GetSettingsInterface() {
+  return service_->GetSettingsInterface();
 }
