@@ -12,6 +12,10 @@ class ExamplePlugin : public PluginBase {
   Q_PLUGIN_METADATA(IID "org.clementine-player.plugins.ExamplePlugin")
 
  public:
+  static const char* kSettingsGroup;
+  static const char* kSettingPort;
+  static const int kDefaultPort;
+
   ExamplePlugin();
 
   IClementine::Player* GetPlayerInterface() override;

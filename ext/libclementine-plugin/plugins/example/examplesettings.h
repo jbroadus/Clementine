@@ -3,14 +3,19 @@
 
 #include "interfaces/settings.h"
 
-class QWidget;
+class ExampleSettingsPage;
 
 class ExampleSettings : public IClementine::Settings {
   Q_OBJECT
  public:
-  ExampleSettings(QObject* parent) : IClementine::Settings(parent) {}
+  ExampleSettings(QObject* parent);
 
-  QWidget* GetSettingsPage();
+  QWidget* GetSettingsPage() override;
+  void Load() override;
+  void Save() override;
+
+ private:
+  ExampleSettingsPage* page_;
 };
 
 #endif  // EXAMPLE_SETTINGS_H

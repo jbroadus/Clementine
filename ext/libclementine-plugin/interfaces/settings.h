@@ -22,12 +22,16 @@
 
 namespace IClementine {
   class Settings : public ComponentInterface {
-   Q_OBJECT
+    Q_OBJECT
   public:
-   Settings(QObject* parent) : ComponentInterface(parent) {}
+    Settings(QObject* parent) : ComponentInterface(parent) {}
 
-   const QString GetName() override { return "Settings"; }
-   virtual QWidget* GetSettingsPage() = 0;
+    const QString GetName() override { return "Settings"; }
+    virtual QWidget* GetSettingsPage() = 0;
+
+  public slots:
+    virtual void Load() = 0;
+    virtual void Save() = 0;
   };
 }
 

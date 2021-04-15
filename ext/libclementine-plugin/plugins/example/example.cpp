@@ -4,21 +4,31 @@
 
 #include <core/logging.h>
 
+#include <QSettings>
 #include <QTcpServer>
 #include <QTcpSocket>
+
+const char* ExamplePlugin::kSettingsGroup = "Example Plugin";
+const char* ExamplePlugin::kSettingPort = "port";
+const int ExamplePlugin::kDefaultPort = 1234;
 
 ExamplePlugin::ExamplePlugin()
   : PluginBase(),
     server_(new QTcpServer(this)),
     player_(new ExamplePlayer(this)),
-    settings_(new ExampleSettings(this)) {
-}
+    settings_(new ExampleSettings(this)) {}
 
 bool ExamplePlugin::Start() {
   qLog(Debug) << "Start";
-  connect(player_, SIGNAL(MessageOut(QString)), this, SIGNAL(MessageOut(QString)));
+
+  QSettings s;
+  s.beginGroup(kSettingsGroup);
+  int port = s.value(kSettingPort, kDefaultPort).toInt();
+  
+  connect(player_, SIGNAL(MessageOut(QString)),
+          this, SIGNAL(MessageOut(QString)));
   connect(server_, SIGNAL(newConnection()), SLOT(NewConnection()));
-  server_->listen(QHostAddress::Any, 1234);
+  server_->listen(QHostAddress::Any, port);
   return true;
 }
 

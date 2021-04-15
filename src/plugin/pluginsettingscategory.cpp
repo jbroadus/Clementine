@@ -38,8 +38,7 @@ void PluginSettingsCategory::AddChildren() {
     if (interface != nullptr) {
       qLog(Debug) << "Add settings for plugin" << plugin->GetName();
       AddPage(SettingsDialog::Page(next_id_++),
-              new PluginSettingsPage(interface->GetSettingsPage(),
-                                                 dialog_));
+              new PluginSettingsPage(interface, dialog_));
     }
   }
 }

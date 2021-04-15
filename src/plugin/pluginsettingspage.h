@@ -20,12 +20,19 @@
 
 #include "ui/settingspage.h"
 
+namespace IClementine {
+  class Settings;
+};
+
 class PluginSettingsPage : public SettingsPage {
  public:
-  PluginSettingsPage(QWidget* settings, SettingsDialog* dialog);
+  PluginSettingsPage(IClementine::Settings* settings, SettingsDialog* dialog);
 
   void Load() override;
   void Save() override;
+
+ private:
+  IClementine::Settings* settings_;
 };
 
 #endif  // PLUGINSETTINGSPAGE_H
