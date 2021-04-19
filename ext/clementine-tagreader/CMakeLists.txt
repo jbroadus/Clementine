@@ -25,8 +25,8 @@ add_executable(clementine-tagreader
 
 target_link_libraries(clementine-tagreader
   ${TAGLIB_LIBRARIES}
-  libclementine-common
-  libclementine-tagreader
+  clementine-common
+  clementine-tagreader-common
   Qt5::Core
   Qt5::Network
   z

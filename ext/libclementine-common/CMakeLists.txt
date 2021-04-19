@@ -28,12 +28,12 @@ endif(APPLE)
 
 qt5_wrap_cpp(MOC ${HEADERS})
 
-add_library(libclementine-common STATIC
+add_library(clementine-common STATIC
   ${SOURCES}
   ${MOC}
 )
 
-target_link_libraries(libclementine-common
+target_link_libraries(clementine-common
   Qt5::Core
   Qt5::Network
   ${TAGLIB_LIBRARIES}

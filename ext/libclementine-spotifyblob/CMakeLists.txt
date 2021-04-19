@@ -14,5 +14,5 @@ add_library(clementine-spotifyblob-messages STATIC
 )
 
 target_link_libraries(clementine-spotifyblob-messages
-  libclementine-common
+  clementine-common
 )

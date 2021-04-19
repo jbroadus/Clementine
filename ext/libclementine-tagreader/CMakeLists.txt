@@ -30,14 +30,14 @@ qt5_wrap_cpp(MOC ${HEADERS})
 
 protobuf_generate_cpp(PROTO_SOURCES PROTO_HEADERS ${MESSAGES})
 
-add_library(libclementine-tagreader STATIC
+add_library(clementine-tagreader-common STATIC
   ${PROTO_SOURCES}
   ${SOURCES}
   ${MOC}
 )
 
-target_link_libraries(libclementine-tagreader
+target_link_libraries(clementine-tagreader-common
   ${PROTOBUF_LIBRARY}
-  libclementine-common
+  clementine-common
 )
 

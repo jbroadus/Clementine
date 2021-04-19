@@ -47,7 +47,7 @@ target_link_libraries(clementine-spotifyblob
   ${GSTREAMER_APP_LIBRARIES}
   ${PROTOBUF_STATIC_LIBRARY}
   clementine-spotifyblob-messages
-  libclementine-common
+  clementine-common
 )
 
 if(APPLE)

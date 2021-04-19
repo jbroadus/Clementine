@@ -1285,9 +1285,9 @@ add_library(clementine_lib STATIC
 )
 
 target_link_libraries(clementine_lib
-  libclementine-common
-  libclementine-tagreader
-  libclementine-remote
+  clementine-common
+  clementine-tagreader-common
+  clementine-remote
 
   ${TAGLIB_LIBRARIES}
   ${MYGPOQT5_LIBRARIES}

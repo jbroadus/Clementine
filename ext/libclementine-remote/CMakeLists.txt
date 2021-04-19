@@ -8,12 +8,12 @@ set(MESSAGES
 
 protobuf_generate_cpp(PROTO_SOURCES PROTO_HEADERS ${MESSAGES})
 
-add_library(libclementine-remote STATIC
+add_library(clementine-remote STATIC
   ${PROTO_SOURCES}
 )
 
-target_link_libraries(libclementine-remote
+target_link_libraries(clementine-remote
   ${PROTOBUF_LIBRARY}
-  libclementine-common
+  clementine-common
 )
 
