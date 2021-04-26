@@ -9,16 +9,22 @@ set(HEADERS
   interfaces/service.h
   interfaces/player.h
   interfaces/settings.h
+)
+
+set(COMMON_HEADERS
   common/pluginbase.h
+  common/settingsbase.h
 )
 
 qt5_wrap_cpp(MOC ${HEADERS})
+qt5_wrap_cpp(COMMON_MOC ${COMMON_HEADERS})
 
 
 # Plugin library
 add_library(clementine-plugin STATIC
   ${COMMON_SOURCES}
   ${MOC}
+  ${COMMON_MOC}
 )
 
 target_link_libraries(clementine-plugin
@@ -29,7 +35,6 @@ target_link_libraries(clementine-plugin
 # Host library
 add_library(clementine-plugin-host STATIC
   plugin-host/init.cpp
-  ${COMMON_SOURCES}
   ${MOC}
   )
 
