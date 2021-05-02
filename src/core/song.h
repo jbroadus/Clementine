@@ -64,7 +64,14 @@ class SqlRow;
 
 class Song {
  public:
-  Song();
+  // Currently, we only care about library vs non-library backends.
+  enum BackendType {
+    Backend_Unknown = 0,
+    Backend_Library,
+    Backend_Other
+  };
+
+  Song(BackendType backend = Backend_Unknown);
   Song(const Song& other);
   ~Song();
 
@@ -216,7 +223,8 @@ class Song {
   FileType filetype() const;
   bool is_stream() const;
   bool is_cdda() const;
-  // Guess if it is a library song using fields set. Might not be 100% reliable.
+  // If backend is not specified, guess if it is a library song using fields.
+  // This case might not be 100% reliable.
   bool is_library_song() const;
 
   const QString& art_automatic() const;

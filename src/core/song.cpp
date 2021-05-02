@@ -161,10 +161,11 @@ const QString Song::kManuallyUnsetCover = "(unset)";
 const QString Song::kEmbeddedCover = "(embedded)";
 
 struct Song::Private : public QSharedData {
-  Private();
+  Private(BackendType backend_);
 
   bool valid_;
   int id_;
+  BackendType backend_;
 
   QString title_;
   QString album_;
@@ -245,9 +246,10 @@ struct Song::Private : public QSharedData {
   QString etag_;
 };
 
-Song::Private::Private()
+Song::Private::Private(BackendType backend)
     : valid_(false),
       id_(-1),
+      backend_(backend),
       track_(-1),
       disc_(-1),
       bpm_(-1),
@@ -276,7 +278,7 @@ Song::Private::Private()
       suspicious_tags_(false),
       unavailable_(false) {}
 
-Song::Song() : d(new Private) {}
+Song::Song(BackendType backend) : d(new Private(backend)) {}
 
 Song::Song(const Song& other) : d(other.d) {}
 
@@ -345,7 +347,17 @@ Song::FileType Song::filetype() const { return d->filetype_; }
 bool Song::is_stream() const { return d->filetype_ == Type_Stream; }
 bool Song::is_cdda() const { return d->filetype_ == Type_Cdda; }
 bool Song::is_library_song() const {
-  return !is_cdda() && !is_stream() && id() != -1;
+  switch (d->backend_) {
+  case Backend_Library:
+    return true;
+  case Backend_Other:
+    return false;
+  case Backend_Unknown:
+    // Best guess.
+    return !is_cdda() && !is_stream() && id() != -1;
+  }
+  qLog(Error) << "Unknown backend type" << d->backend_;
+  return false;
 }
 const QString& Song::art_automatic() const { return d->art_automatic_; }
 const QString& Song::art_manual() const { return d->art_manual_; }
