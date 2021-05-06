@@ -17,3 +17,14 @@ brew 'protobuf'
 brew 'protobuf-c'
 brew 'qt@5'
 brew 'tomahawk-player/homebrew-tomahawkqt5/liblastfm'
+
+# These were added for libgpod support and can probably be removed if/when the
+# libgpod package is available.
+brew 'wget'
+brew 'libplist'
+brew 'gnome-common'
+brew 'gdk-pixbuf'
+brew 'intltool'
+brew 'autoconf'
+brew 'automake'
+brew 'gtk-doc'
