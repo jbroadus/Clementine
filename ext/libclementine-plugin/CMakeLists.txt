@@ -44,7 +44,7 @@ target_link_libraries(clementine-plugin-host
 
 if (USE_PLUGINS_STATIC)
   target_link_libraries(clementine-plugin-host
-    PUBLIC clementine-plugin-bundle)
+    clementine-plugin-bundle)
 endif (USE_PLUGINS_STATIC)
 
 add_subdirectory(plugins)

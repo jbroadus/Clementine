@@ -16,6 +16,6 @@ target_link_libraries(clementine-plugin-bundle
 if(INCLUDE_EXAMPLE_PLUGIN)
   add_subdirectory(example)
   target_link_libraries(clementine-plugin-bundle
-    PUBLIC clementine-plugin-example
+    clementine-plugin-example
   )
 endif(INCLUDE_EXAMPLE_PLUGIN)
