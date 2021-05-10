@@ -18,6 +18,7 @@
 #include "plsparser.h"
 
 #include <QTextStream>
+#include <QTextCodec>
 #include <QtDebug>
 
 #include "core/logging.h"
@@ -65,6 +66,9 @@ SongList PLSParser::Load(QIODevice* device, const QString& playlist_path,
 void PLSParser::Save(const SongList& songs, QIODevice* device, const QDir& dir,
                      Playlist::Path path_type) const {
   QTextStream s(device);
+
+  qLog(Debug) << "Codec" << s.codec()->name();
+
   s << "[playlist]" << endl;
   s << "Version=2" << endl;
   s << "NumberOfEntries=" << songs.count() << endl;
