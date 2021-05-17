@@ -171,7 +171,8 @@ void SavedRadio::AddStreamToList(const Stream& stream, QStandardItem* parent) {
   QStandardItem* s = new QStandardItem(
       IconLoader::Load("icon_radio", IconLoader::Lastfm), stream.name_);
   s->setData(stream.url_, InternetModel::Role_Url);
-  s->setData(InternetModel::PlayBehaviour_UseSongLoader,
+  s->setData(QVariant::fromValue(stream.ToSong()), InternetModel::Role_SongMetadata);
+  s->setData(InternetModel::PlayBehaviour_SingleItem,
              InternetModel::Role_PlayBehaviour);
   parent->appendRow(s);
 }
@@ -188,3 +189,11 @@ void SavedRadio::Add(const QUrl& url, const QString& name,
   }
   SaveStreams();
 }
+
+Song SavedRadio::Stream::ToSong() const {
+  Song song;
+  song.set_valid(true);
+  song.set_title(name_);
+  song.set_url(url_);
+  return song;
+};

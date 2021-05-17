@@ -45,6 +45,8 @@ class SavedRadio : public InternetService {
                     const QUrl& url_logo = QUrl())
         : url_(url), name_(name), url_logo_(url_logo) {}
 
+    Song ToSong() const;
+
     // For QList::contains
     bool operator==(const Stream& other) const { return url_ == other.url_; }
 
