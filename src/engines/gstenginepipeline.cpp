@@ -660,7 +660,16 @@ GstBusSyncReply GstEnginePipeline::BusCallbackSync(GstBus*, GstMessage* msg,
       }
       break;
 
+    case GST_MESSAGE_DURATION_CHANGED:
+      instance->DurationChangedMessageReceived(msg);
+      break;
+
+    case GST_MESSAGE_STREAM_COLLECTION:
+      instance->StreamCollectionMessageReceived(msg);
+      break;
+      
     default:
+      qLog(Debug) << "Unhandled" << (unsigned int)GST_MESSAGE_TYPE(msg) << GST_MESSAGE_TYPE_NAME(msg);
       break;
   }
 
@@ -679,6 +688,22 @@ void GstEnginePipeline::StreamStatusMessageReceived(GstMessage* msg) {
       gst_task_set_enter_callback(task, &TaskEnterCallback, this, NULL);
     }
   }
+}
+
+void GstEnginePipeline::DurationChangedMessageReceived(GstMessage* msg) {
+  qLog(Debug) << "Duration changed message from" << G_OBJECT_TYPE_NAME(msg->src);
+}
+
+void GstEnginePipeline::StreamCollectionMessageReceived(GstMessage* msg) {
+  qLog(Debug) << "Stream collection message from" << G_OBJECT_TYPE_NAME(msg->src);
+  GstStreamCollection* collection;
+  gst_message_parse_stream_collection(msg, &collection);
+  for(int i=0; i<gst_stream_collection_get_size(collection); i++) {
+    GstStream* stream = gst_stream_collection_get_stream(collection, i);
+    GstStreamType type = gst_stream_get_stream_type(stream);;
+    qLog(Debug) << "Stream" << gst_stream_type_get_name(type); 
+  }
+  gst_object_unref(collection);
 }
 
 void GstEnginePipeline::TaskEnterCallback(GstTask*, GThread*, gpointer) {
@@ -803,6 +828,7 @@ void GstEnginePipeline::StateChangedMessageReceived(GstMessage* msg) {
 
   GstState old_state, new_state, pending;
   gst_message_parse_state_changed(msg, &old_state, &new_state, &pending);
+  qLog(Debug) << old_state << new_state;
 
   if (!pipeline_is_initialised_ &&
       (new_state == GST_STATE_PAUSED || new_state == GST_STATE_PLAYING)) {

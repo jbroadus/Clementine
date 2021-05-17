@@ -144,6 +144,8 @@ class GstEnginePipeline : public GstPipelineBase {
   void StateChangedMessageReceived(GstMessage*);
   void BufferingMessageReceived(GstMessage*);
   void StreamStatusMessageReceived(GstMessage*);
+  void DurationChangedMessageReceived(GstMessage*);
+  void StreamCollectionMessageReceived(GstMessage*);
 
   QString ParseTag(GstTagList* list, const char* tag) const;
 
