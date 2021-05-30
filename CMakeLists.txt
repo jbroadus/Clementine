@@ -459,6 +459,7 @@ endif(HAVE_SPOTIFY)
 
 option(USE_PLUGINS "Include plugin architecture" ON)
 if(USE_PLUGINS)
+  option(PLUGIN_INSTALL_DIR "Plugin install directory" ${CMAKE_INSTALL_LIBDIR})
   add_subdirectory(ext/libclementine-plugin)
 endif(USE_PLUGINS)
 

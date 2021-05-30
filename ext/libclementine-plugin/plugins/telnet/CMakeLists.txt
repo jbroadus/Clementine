@@ -26,3 +26,7 @@ target_link_libraries(clementine-plugin-telnet
   Qt5::Network
   clementine-plugin
 )
+
+if(NOT APPLE)
+  install(TARGETS clementine-plugin-telnet LIBRARY DESTINATION ${PLUGIN_INSTALL_DIR})
+endif(NOT APPLE)
