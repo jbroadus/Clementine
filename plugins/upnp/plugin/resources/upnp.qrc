@@ -2,5 +2,7 @@
 <RCC version="1.0">
     <qresource>
         <file>upnp/AVTransport1.xml</file>
+        <file>upnp/ConnectionManager1.xml</file>
+        <file>upnp/RenderingControl1.xml</file>
     </qresource>
 </RCC>

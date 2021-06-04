@@ -23,6 +23,8 @@
 
 #include "core/logging.h"
 #include "services/avtransport.h"
+#include "services/connectionmanager.h"
+#include "services/renderingcontrol.h"
 #include "upnpevents.h"
 #include "upnpmanager.h"
 #include "upnpserver.h"
@@ -95,6 +97,8 @@ void UpnpRoot::SubscriptionRequest(Clementine::UpnpSubscriptionRequest* req) {}
 
 UpnpRoot::UpnpRoot(UpnpManager* parent) : QObject(parent), manager_(parent) {
   AddService(new AVTransport(manager_, this));
+  AddService(new ConnectionManager(manager_, this));
+  AddService(new RenderingControl(manager_, this));
 }
 
 void UpnpRoot::AddService(UpnpService* service) {

@@ -14,6 +14,8 @@ set(SOURCES
     core/scpdparser.cpp
     core/scpdbuilder.cpp
     services/avtransport.cpp
+    services/connectionmanager.cpp
+    services/renderingcontrol.cpp
 )
 
 set(HEADERS
