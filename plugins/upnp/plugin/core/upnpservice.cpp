@@ -51,9 +51,24 @@ void UpnpService::HandleActionRequest(Clementine::UpnpActionRequest* req,
                                       const UpnpAction* action) {
   qLog(Debug) << name_ << "got action" << action->name_;
   if (action->action_cb_ != nullptr) {
-    action->action_cb_(req);
+    if(!action->action_cb_(req)) {
+      // Callback should set error code.
+      return;
+    }
   }
+
+  // Success
   req->InitResponse(type_);
+
+  for (const UpnpAction::Arg& arg : action->args_) {
+    if (arg.dir_ == UpnpAction::Arg::IN) {
+      qLog(Debug) << "In" << arg.name_;
+    } else {
+      qLog(Debug) << "Out" << arg.name_;
+      req->AddToResponse(arg.name_, "");
+    }
+  }
+
   req->SetErrorCode(UPNP_E_SUCCESS);
 }
 

@@ -36,6 +36,7 @@ void AVTransport::Setup() {
   if (play) {
     play->action_cb_ = [=](Clementine::UpnpActionRequest* req) {
       QMetaObject::invokeMethod(player, "Play");
+      return true;
     };
   }
 
@@ -43,6 +44,7 @@ void AVTransport::Setup() {
   if (stop) {
     stop->action_cb_ = [=](Clementine::UpnpActionRequest* req) {
       QMetaObject::invokeMethod(player, "Stop");
+      return true;
     };
   }
 }

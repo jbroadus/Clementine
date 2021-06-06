@@ -61,7 +61,7 @@ class UpnpAction {
   ArgList args_;
   QString name_;
 
-  std::function<void(Clementine::UpnpActionRequest* request)> action_cb_;
+  std::function<bool(Clementine::UpnpActionRequest* request)> action_cb_;
 };
 
 #endif  // UPNPACTION_H

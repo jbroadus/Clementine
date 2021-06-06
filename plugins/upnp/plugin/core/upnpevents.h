@@ -31,17 +31,25 @@ class UpnpActionRequest : public QObject {
  public:
   using Req = ::UpnpActionRequest;
   UpnpActionRequest() = default;
-  UpnpActionRequest(const void* req) : req_((Req*)req), resp_(nullptr) {}
+  UpnpActionRequest(const void* req) : req_((Req*)req), resp_(nullptr) {
+    Parse();
+  }
   UpnpActionRequest(const UpnpActionRequest& other)
       : req_(other.req_), resp_(other.resp_) {}
 
   QString GetServiceId() const;
   QString GetActionName() const;
 
-  void InitResponse(const QString& serviceType);
+  void InitResponse(const QString& service_type);
+  void AddToResponse(const QString& name, const QString& val);
 
   void SetErrorCode(int code);
   int GetErrorCode();
+
+ private:
+  void Parse();
+
+  QString service_type_;
 
   // We don't own this memory;
   Req* req_;
