@@ -174,5 +174,8 @@ void PlaylistParser::Save(const SongList& songs, const QString& filename,
   QFile file(filename);
   file.open(QIODevice::WriteOnly);
 
-  return parser->Save(songs, &file, info.absolutePath(), path_type);
+  if (!parser->Save(songs, &file, info.absolutePath(), path_type)) {
+    qLog(Warning) << "Save failed. Removing" << filename;
+    file.remove();
+  }
 }

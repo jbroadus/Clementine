@@ -51,7 +51,7 @@ class ParserBase : public QObject {
   // from the parser's point of view).
   virtual SongList Load(QIODevice* device, const QString& playlist_path = "",
                         const QDir& dir = QDir()) const = 0;
-  virtual void Save(
+  virtual bool Save(
       const SongList& songs, QIODevice* device, const QDir& dir = QDir(),
       Playlist::Path path_type = Playlist::Path_Automatic) const = 0;
 

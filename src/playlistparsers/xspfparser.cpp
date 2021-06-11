@@ -111,7 +111,7 @@ return_song:
   return song;
 }
 
-void XSPFParser::Save(const SongList& songs, QIODevice* device, const QDir& dir,
+bool XSPFParser::Save(const SongList& songs, QIODevice* device, const QDir& dir,
                       Playlist::Path path_type) const {
   QFileInfo file;
   QXmlStreamWriter writer(device);
@@ -177,6 +177,8 @@ void XSPFParser::Save(const SongList& songs, QIODevice* device, const QDir& dir,
     }
   }
   writer.writeEndDocument();
+
+  return true;
 }
 
 bool XSPFParser::TryMagic(const QByteArray& data) const {

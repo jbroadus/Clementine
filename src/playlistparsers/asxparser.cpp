@@ -118,7 +118,7 @@ return_song:
   return song;
 }
 
-void ASXParser::Save(const SongList& songs, QIODevice* device, const QDir&,
+bool ASXParser::Save(const SongList& songs, QIODevice* device, const QDir&,
                      Playlist::Path path_type) const {
   QXmlStreamWriter writer(device);
   writer.setAutoFormatting(true);
@@ -140,6 +140,8 @@ void ASXParser::Save(const SongList& songs, QIODevice* device, const QDir&,
     }
   }
   writer.writeEndDocument();
+
+  return true;
 }
 
 bool ASXParser::TryMagic(const QByteArray& data) const {
