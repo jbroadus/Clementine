@@ -25,6 +25,7 @@
 #include <QtDebug>
 
 #include "core/application.h"
+#include "core/logging.h"
 #include "core/mergedproxymodel.h"
 #include "globalsearch/globalsearch.h"
 #include "internet/core/internetmodel.h"
@@ -61,6 +62,7 @@ void InternetViewContainer::SetApplication(Application* app) {
   connect(ui_->tree->selectionModel(),
           SIGNAL(currentChanged(QModelIndex, QModelIndex)),
           SLOT(CurrentIndexChanged(QModelIndex)));
+  connect(ui_->tree, SIGNAL(clicked(QModelIndex)), SLOT(Clicked(QModelIndex)));
 }
 
 void InternetViewContainer::ServiceChanged(const QModelIndex& index) {
@@ -107,6 +109,10 @@ void InternetViewContainer::Collapsed(const QModelIndex& index) {
 
 void InternetViewContainer::Expanded(const QModelIndex& index) {
   ServiceChanged(index);
+}
+
+void InternetViewContainer::Clicked(const QModelIndex& index) {
+  qLog(Debug) << "Clicked" << index;
 }
 
 void InternetViewContainer::SetHeaderVisible(QWidget* header, bool visible) {

@@ -88,6 +88,7 @@ class InternetModel : public QStandardItemModel {
 
   enum Type {
     Type_Service = 1,
+    Type_Config,
     Type_Track,
     Type_UserPlaylist,
     Type_SmartPlaylist,

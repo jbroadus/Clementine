@@ -51,6 +51,7 @@ class InternetViewContainer : public QWidget {
  private slots:
   void Collapsed(const QModelIndex& index);
   void Expanded(const QModelIndex& index);
+  void Clicked(const QModelIndex& index);
   void CurrentIndexChanged(const QModelIndex& index);
   void SetHeaderHeight(int height);
 
