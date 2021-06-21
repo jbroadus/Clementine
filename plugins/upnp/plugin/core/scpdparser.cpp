@@ -32,7 +32,7 @@ bool ScpdParser::parse() {
 
   while (readNextStartElement()) {
     if (isElement("serviceStateTable")) {
-      if (!parseServiceTable()) {
+      if (!parseServiceStateTable()) {
         return false;
       }
     } else if (isElement("actionList")) {
@@ -132,7 +132,7 @@ bool ScpdParser::parseArg(UpnpAction& action) {
   return true;
 }
 
-bool ScpdParser::parseServiceTable() {
+bool ScpdParser::parseServiceStateTable() {
   while (readNextStartElement()) {
     if (!expected("stateVariable")) {
       return false;
@@ -182,6 +182,8 @@ bool ScpdParser::parseStateVariable() {
     qLog(Error) << "Missing required var name.";
     return false;
   }
+  service_->AddVar(std::move(var));
+
   return true;
 }
 

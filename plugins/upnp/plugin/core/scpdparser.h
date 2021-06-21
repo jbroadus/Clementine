@@ -36,7 +36,7 @@ class ScpdParser : public QXmlStreamReader {
   bool parseArgList(UpnpAction& action);
   bool parseArg(UpnpAction& action);
 
-  bool parseServiceTable();
+  bool parseServiceStateTable();
   bool parseStateVariable();
 
   bool isElement(const QString name);

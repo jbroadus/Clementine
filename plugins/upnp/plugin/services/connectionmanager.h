@@ -25,6 +25,7 @@ class ConnectionManager : public UpnpServiceHosted {
   ConnectionManager(UpnpManager* manager, QObject* parent);
  private:
   void Setup();
+  QString GetSinkProtocolInfo();
 };
 
 #endif  // UPNP_SERVICES_CONNECTIONMANAGER_H

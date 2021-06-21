@@ -15,12 +15,19 @@
    along with Clementine.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+  V1 spec: http://upnp.org/specs/av/UPnP-av-ConnectionManager-v1-Service.pdf
+ */
+
 #include "connectionmanager.h"
 
 #include "core/application.h"
 #include "core/logging.h"
 #include "core/player.h"
 #include "core/upnpmanager.h"
+
+#include <QHostAddress>
+#include <QNetworkInterface>
 
 ConnectionManager::ConnectionManager(UpnpManager* manager, QObject* parent)
     : UpnpServiceHosted("ConnectionManager", 1, manager, parent) {
@@ -29,4 +36,25 @@ ConnectionManager::ConnectionManager(UpnpManager* manager, QObject* parent)
 
 void ConnectionManager::Setup() {
   ParseDesc(SrcPath());
+
+  // Initial state values.
+  UpnpVar* var = GetVar("SinkProtocolInfo");
+  if (var) {
+    var->SetStringValue(GetSinkProtocolInfo());
+  } else {
+    qLog(Error) << "No variable SinkProtocolInfo";
+  }
+}
+
+QString ConnectionManager::GetSinkProtocolInfo() {
+  QString network = "*";
+  QList<QHostAddress> addrs = QNetworkInterface::allAddresses();
+  for (const QHostAddress& addr : addrs) {
+    if (addr.isNull()) continue;
+    if (addr.isLoopback()) continue;
+    if (addr.protocol() != QAbstractSocket::IPv4Protocol) continue;
+    network = addr.toString();
+    break;
+  }
+  return QString("internal:%1:*:local-library").arg(network);
 }

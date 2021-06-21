@@ -37,12 +37,16 @@ class UpnpVar {
   UpnpVar() : sendEvents_(false) {}
   UpnpVar(const QString& name) : name_(name), sendEvents_(false) {}
 
+  QString GetStringValue() const { return value_; }
+  void SetStringValue(const QString& value) { value_ = value; }
+
   QString name_;
   QString type_;
   QString value_;
   bool sendEvents_;
 };
 typedef QVector<UpnpVar> UpnpVarList;
+typedef QHash<QString, UpnpVar> UpnpVarMap;
 
 typedef QList<UpnpAction> UpnpActionList;
 typedef QHash<QString, UpnpAction> UpnpActionMap;
@@ -62,6 +66,8 @@ class UpnpService : public QObject {
   void AddAction(UpnpAction&& action);
   void ActionRequest(Clementine::UpnpActionRequest* req);
 
+  void AddVar(UpnpVar&& var);
+
   const QString& id() { return id_; }
 
  protected:
@@ -73,6 +79,7 @@ class UpnpService : public QObject {
   virtual const QString EventUrl() { return QString("/%1/event").arg(name_); }
 
   UpnpAction* GetAction(const QString& name);
+  UpnpVar* GetVar(const QString& name);
 
   const QString url_;
   const QString name_;
@@ -85,7 +92,7 @@ class UpnpService : public QObject {
  protected:
   friend class ScpdParser;
   UpnpActionMap actionMap_;
-  UpnpVarList vars_;
+  UpnpVarMap varMap_;
 };
 
 class UpnpServiceHosted : public UpnpService {

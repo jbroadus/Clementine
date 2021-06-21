@@ -61,11 +61,16 @@ void UpnpService::HandleActionRequest(Clementine::UpnpActionRequest* req,
   req->InitResponse(type_);
 
   for (const UpnpAction::Arg& arg : action->args_) {
+    UpnpVar* var = GetVar(arg.var_);
+    if (var == nullptr) {
+      qLog(Error) << "Arg" << arg.name_ << "names illegal var" << arg.var_;
+      continue;
+    }
     if (arg.dir_ == UpnpAction::Arg::IN) {
       qLog(Debug) << "In" << arg.name_;
     } else {
-      qLog(Debug) << "Out" << arg.name_;
-      req->AddToResponse(arg.name_, "");
+      qLog(Debug) << "Out" << arg.name_ << "=" << arg.var_ << var->GetStringValue();
+      req->AddToResponse(arg.name_, var->GetStringValue());
     }
   }
 
@@ -75,6 +80,18 @@ void UpnpService::HandleActionRequest(Clementine::UpnpActionRequest* req,
 UpnpAction* UpnpService::GetAction(const QString& name) {
   UpnpActionMap::iterator i = actionMap_.find(name);
   if (i == actionMap_.end()) {
+    return nullptr;
+  }
+  return &i.value();
+}
+
+void UpnpService::AddVar(UpnpVar&& var) {
+  varMap_[var.name_] = var;
+}
+
+UpnpVar* UpnpService::GetVar(const QString& name) {
+  UpnpVarMap::iterator i = varMap_.find(name);
+  if (i == varMap_.end()) {
     return nullptr;
   }
   return &i.value();
