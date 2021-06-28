@@ -84,7 +84,12 @@ void CloudFileService::LazyPopulate(QStandardItem* item) {
   switch (item->data(InternetModel::Role_Type).toInt()) {
     case InternetModel::Type_Service:
       if (!has_credentials()) {
-        ShowSettingsDialog();
+        qLog(Debug) << "Add config";
+        QStandardItem* config = new QStandardItem(tr("Click to configure"));
+        config->setData(InternetModel::Type_Config, InternetModel::Role_Type);
+        root_->appendRow(config);
+        return;
+        //ShowSettingsDialog();
       } else {
         Connect();
       }

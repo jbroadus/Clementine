@@ -182,6 +182,10 @@ void InternetModel::RemoveService(InternetService* service) {
   disconnect(service, 0, this, 0);
 }
 
+void InternetModel::ItemClicked(const QModelIndex& index) {
+  qLog(Debug) << "Clicked" << index << index.data(Role_Type);
+}
+
 void InternetModel::ServiceDeleted() {
   InternetService* service = qobject_cast<InternetService*>(sender());
   if (service) RemoveService(service);

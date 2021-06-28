@@ -57,12 +57,13 @@ InternetView* InternetViewContainer::tree() const { return ui_->tree; }
 void InternetViewContainer::SetApplication(Application* app) {
   app_ = app;
 
-  ui_->tree->setModel(app_->internet_model()->merged_model());
+  InternetModel* model = app_->internet_model();
+  ui_->tree->setModel(model->merged_model());
 
   connect(ui_->tree->selectionModel(),
           SIGNAL(currentChanged(QModelIndex, QModelIndex)),
           SLOT(CurrentIndexChanged(QModelIndex)));
-  connect(ui_->tree, SIGNAL(clicked(QModelIndex)), SLOT(Clicked(QModelIndex)));
+  connect(ui_->tree, SIGNAL(clicked(QModelIndex)), model, SLOT(ItemClicked(QModelIndex)));
 }
 
 void InternetViewContainer::ServiceChanged(const QModelIndex& index) {
@@ -109,10 +110,6 @@ void InternetViewContainer::Collapsed(const QModelIndex& index) {
 
 void InternetViewContainer::Expanded(const QModelIndex& index) {
   ServiceChanged(index);
-}
-
-void InternetViewContainer::Clicked(const QModelIndex& index) {
-  qLog(Debug) << "Clicked" << index;
 }
 
 void InternetViewContainer::SetHeaderVisible(QWidget* header, bool visible) {

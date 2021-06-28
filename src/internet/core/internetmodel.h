@@ -181,6 +181,9 @@ class InternetModel : public QStandardItemModel {
   void AddToPlaylist(QMimeData* data);
   void ScrollToIndex(const QModelIndex& index);
 
+ public slots:
+  void ItemClicked(const QModelIndex& index);
+
  private slots:
   void ServiceDeleted();
   void RowsAboutToBeRemoved(const QModelIndex& parent, int first, int last);
